@@ -90,38 +90,37 @@ const SERVERS = [
     }
   },
   {
-    name: "VidSrc To",
+    name: "VidLink",
     getUrl: (type: string, id: any, startAt: number = 0) => {
       const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://vidsrc.to/embed/${t}/${id}`;
+      return `https://vidlink.pro/${t}/${id}`;
     }
   },
   {
-    name: "Embed SU",
+    name: "VidSrc RIP",
     getUrl: (type: string, id: any, startAt: number = 0) => {
       const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://embed.su/embed/${t}/${id}`;
+      return `https://vidsrc.rip/embed/${t}/${id}`;
     }
   },
   {
-    name: "VidSrc Me",
+    name: "2Embed",
     getUrl: (type: string, id: any, startAt: number = 0) => {
-      const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://vidsrc.me/embed/${t}?tmdb=${id}`;
+      return `https://www.2embed.cc/embed/${id}`;
     }
   },
   {
-    name: "Videasy",
+    name: "SmashyStream",
     getUrl: (type: string, id: any, startAt: number = 0) => {
       const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://player.videasy.net/${t}/${id}`;
+      return `https://embed.smashystream.com/playere.php?tmdb=${id}&type=${t}`;
     }
   },
   {
-    name: "MultiEmbed",
+    name: "NontonGo",
     getUrl: (type: string, id: any, startAt: number = 0) => {
-      const s = type === 'tv' ? `&s=1&e=1` : '';
-      return `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1${s}`;
+      const t = type === 'tv' ? 'serie' : 'film';
+      return `https://www.nontongo.win/embed/${t}/${id}`;
     }
   },
 ];
