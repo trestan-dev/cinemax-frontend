@@ -78,13 +78,57 @@ const BACKEND_URL = `https://cinemax-backend-1pwt.onrender.com`;
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CURRENT_YEAR = new Date().getFullYear();
 const MAX_TMDB_PAGES = 167;
-// Change this line (Source 4)
-// vidsrc.cc supports: startAt (seconds), autoPlay, color
-const SERVER_URL = (type: string, id: any, startAtSeconds: number = 0) => {
-  const base = `https://vidsrc.cc/v2/embed/${type === 'tv' ? 'tv' : 'movie'}/${id}`;
-  const params: string[] = ['autoPlay=1'];
-  if (startAtSeconds > 3) params.push(`startAt=${Math.floor(startAtSeconds)}`);
-  return `${base}?${params.join('&')}`;
+// ── MULTI-SERVER SYSTEM ─────────────────────────────────────────────────────
+const SERVERS = [
+  {
+    name: "VidSrc CC",
+    getUrl: (type: string, id: any, startAt: number = 0) => {
+      const base = `https://vidsrc.cc/v2/embed/${type === 'tv' ? 'tv' : 'movie'}/${id}`;
+      const params = ['autoPlay=1'];
+      if (startAt > 3) params.push(`startAt=${Math.floor(startAt)}`);
+      return `${base}?${params.join('&')}`;
+    }
+  },
+  {
+    name: "VidSrc To",
+    getUrl: (type: string, id: any, startAt: number = 0) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://vidsrc.to/embed/${t}/${id}`;
+    }
+  },
+  {
+    name: "Embed SU",
+    getUrl: (type: string, id: any, startAt: number = 0) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://embed.su/embed/${t}/${id}`;
+    }
+  },
+  {
+    name: "VidSrc Me",
+    getUrl: (type: string, id: any, startAt: number = 0) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://vidsrc.me/embed/${t}?tmdb=${id}`;
+    }
+  },
+  {
+    name: "Videasy",
+    getUrl: (type: string, id: any, startAt: number = 0) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://player.videasy.net/${t}/${id}`;
+    }
+  },
+  {
+    name: "MultiEmbed",
+    getUrl: (type: string, id: any, startAt: number = 0) => {
+      const s = type === 'tv' ? `&s=1&e=1` : '';
+      return `https://multiembed.mov/directstream.php?video_id=${id}&tmdb=1${s}`;
+    }
+  },
+];
+
+const SERVER_URL = (type: string, id: any, startAtSeconds: number = 0, serverIndex: number = 0) => {
+  const idx = Math.min(serverIndex, SERVERS.length - 1);
+  return SERVERS[idx].getUrl(type, id, startAtSeconds);
 };
 
 const GENRES = [
@@ -120,6 +164,7 @@ export default function App() {
   const sliderRef = useRef(null);
   const scrollViewRef = useRef(null);
   
+  const [selectedServer, setSelectedServer] = useState(0);
   const [search, setSearch] = useState('');
   const [genreSearch, setGenreSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -524,7 +569,7 @@ export default function App() {
       if (err.type === 'unavailable-id') {
         // ID taken (e.g., old session still alive), get a new one
         const fallback = new Peer(undefined, {
-          host: "demonstrated-deadline-automatic-desirable.trycloudflare.com",
+          host: "cinemax-backend-1pwt.onrender.com",
           port: 443,
           path: '/peerjs',
           secure: true
@@ -681,7 +726,7 @@ export default function App() {
       localStorage.removeItem('wt_host_mode');
       // Spin up a fresh peer so a new random ID is ready for next create
       const freshPeer = new Peer(undefined, {
-        host: "lambda-cho-advisors-baptist.trycloudflare.com",
+        host: "cinemax-backend-1pwt.onrender.com",
         port: 443, path: '/peerjs', secure: true
       });
       freshPeer.on('open', (id) => {
@@ -1348,12 +1393,38 @@ const askAI = async () => {
             ) : (
               <View style={{flex: 1, backgroundColor: '#000'}}>
                  <iframe 
-                    src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId)} 
+                    key={`player-${selectedMovie.tmdbId}-${selectedServer}`}
+                    src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId, 0, selectedServer)} 
                     style={{ width: '100%', height: '100%', border: 'none' }} 
                     allowFullScreen 
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
                     sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
                  />
                  <View style={styles.customControls}>
+                    {/* Server Switcher */}
+                    <Text style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                      🎬 Switch Server if video won't play
+                    </Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 4, marginBottom: 14 }}>
+                      {SERVERS.map((server, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => setSelectedServer(index)}
+                          style={{
+                            backgroundColor: selectedServer === index ? '#5e96f1' : '#1e293b',
+                            paddingHorizontal: 14,
+                            paddingVertical: 7,
+                            borderRadius: 20,
+                            borderWidth: 1,
+                            borderColor: selectedServer === index ? '#5e96f1' : '#334155',
+                          }}
+                        >
+                          <Text style={{ color: selectedServer === index ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: selectedServer === index ? 'bold' : 'normal' }}>
+                            {selectedServer === index ? '▶ ' : ''}{server.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
                     <Text style={styles.promoText}>Enjoying the show? 🍿 Invite your friends to <Text style={{color: '#5e96f1', fontWeight: 'bold'}}>CinemaX</Text> for an ad-free, uninterrupted cinematic experience!</Text>
                     <TouchableOpacity style={[styles.copyBtn, copied && {backgroundColor: '#10b981'}]} onPress={handleCopyLink}>
                       <Text style={styles.copyBtnText}>{copied ? (roomId ? "ID COPIED! ✅" : "COPIED! ✅") : (roomId ? "COPY ROOM ID 🔗" : "COPY INVITE LINK 🔗")}</Text>
@@ -1437,7 +1508,7 @@ const askAI = async () => {
                   `}</style>
                   <iframe
                     key={`wt-iframe-${wtMovie?.tmdbId}-${wtIframeKey}`}
-                    src={SERVER_URL(wtMovie.type, wtMovie.tmdbId, Math.max(0, wtLoadedOffset))}
+                    src={SERVER_URL(wtMovie.type, wtMovie.tmdbId, Math.max(0, wtLoadedOffset), selectedServer)}
                     style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
