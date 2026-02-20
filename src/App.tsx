@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, useWindowDimension
 import Peer from 'peerjs';
 import { Dimensions } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-
+//wala lang
 const handleSmartLink = () => {
   // Replace this with your actual Direct Link from Adsterra
   const smartLinkUrl = "https://www.effectivegatecpm.com/ba4n4bn1u?key=c4d46c1a4f74e3aea4ebb8725567fe32";
