@@ -82,7 +82,8 @@ const MAX_TMDB_PAGES = 167;
 const SERVERS = [
   {
     name: "VidSrc CC",
-    getUrl: (type: string, id: any, startAt: number = 0) => {
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
       const base = `https://vidsrc.cc/v2/embed/${type === 'tv' ? 'tv' : 'movie'}/${id}`;
       const params = ['autoPlay=1'];
       if (startAt > 3) params.push(`startAt=${Math.floor(startAt)}`);
@@ -90,44 +91,50 @@ const SERVERS = [
     }
   },
   {
-    name: "VidLink",
-    getUrl: (type: string, id: any, startAt: number = 0) => {
+    name: "VidSrc ICU",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
       const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://vidlink.pro/${t}/${id}`;
+      return `https://vidsrc.icu/embed/${t}/${id}`;
     }
   },
   {
-    name: "VidSrc RIP",
-    getUrl: (type: string, id: any, startAt: number = 0) => {
+    name: "VidSrc IN",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
       const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://vidsrc.rip/embed/${t}/${id}`;
+      return `https://vidsrc.in/embed/${t}?tmdb=${id}`;
     }
   },
   {
-    name: "2Embed",
-    getUrl: (type: string, id: any, startAt: number = 0) => {
-      return `https://www.2embed.cc/embed/${id}`;
-    }
-  },
-  {
-    name: "SmashyStream",
-    getUrl: (type: string, id: any, startAt: number = 0) => {
+    name: "VidSrc XYZ",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
       const t = type === 'tv' ? 'tv' : 'movie';
-      return `https://embed.smashystream.com/playere.php?tmdb=${id}&type=${t}`;
+      return `https://vidsrc.xyz/embed/${t}?tmdb=${id}`;
     }
   },
   {
-    name: "NontonGo",
-    getUrl: (type: string, id: any, startAt: number = 0) => {
-      const t = type === 'tv' ? 'serie' : 'film';
-      return `https://www.nontongo.win/embed/${t}/${id}`;
+    name: "VidSrc NET",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://vidsrc.net/embed/${t}?tmdb=${id}`;
+    }
+  },
+  {
+    name: "GoDrive",
+    needsImdb: true,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      if (!imdbId) return '';
+      return `https://godriveplayer.com/player.php?imdb=${imdbId}`;
     }
   },
 ];
 
-const SERVER_URL = (type: string, id: any, startAtSeconds: number = 0, serverIndex: number = 0) => {
+const SERVER_URL = (type: string, id: any, startAtSeconds: number = 0, serverIndex: number = 0, imdbId?: string) => {
   const idx = Math.min(serverIndex, SERVERS.length - 1);
-  return SERVERS[idx].getUrl(type, id, startAtSeconds);
+  return SERVERS[idx].getUrl(type, id, startAtSeconds, imdbId);
 };
 
 const GENRES = [
@@ -164,6 +171,8 @@ export default function App() {
   const scrollViewRef = useRef(null);
   
   const [selectedServer, setSelectedServer] = useState(0);
+  const [imdbId, setImdbId] = useState<string | null>(null);
+  const [imdbLoading, setImdbLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [genreSearch, setGenreSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -1021,6 +1030,30 @@ const askAI = async () => {
     return ids.map(id => GENRES.find(g => g.id === id)?.name).filter(Boolean);
   };
 
+  // Fetch IMDB ID when movie is selected or server changes to GoDrive
+  useEffect(() => {
+    const currentServer = SERVERS[selectedServer];
+    if (!currentServer.needsImdb || !selectedMovie) {
+      setImdbId(null);
+      return;
+    }
+    const fetchImdbId = async () => {
+      setImdbLoading(true);
+      try {
+        const type = selectedMovie.type || 'movie';
+        const res = await fetch(`${BACKEND_URL}/api/movies/external_ids?type=${type}&id=${selectedMovie.tmdbId}`);
+        const data = await res.json();
+        setImdbId(data.imdb_id || null);
+      } catch (e) {
+        console.error('Failed to fetch IMDB ID:', e);
+        setImdbId(null);
+      } finally {
+        setImdbLoading(false);
+      }
+    };
+    fetchImdbId();
+  }, [selectedMovie, selectedServer]);
+
   const fetchHero = async () => {
     try {
       let region = "PH";
@@ -1391,14 +1424,25 @@ const askAI = async () => {
               </ScrollView>
             ) : (
               <View style={{flex: 1, backgroundColor: '#000'}}>
-                 <iframe 
-                    key={`player-${selectedMovie.tmdbId}-${selectedServer}`}
-                    src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId, 0, selectedServer)} 
-                    style={{ width: '100%', height: '100%', border: 'none' }} 
-                    allowFullScreen 
-                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                    sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
-                 />
+                 {imdbLoading ? (
+                   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+                     <ActivityIndicator color="#5e96f1" size="large" />
+                     <Text style={{ color: '#64748b', fontSize: 12, marginTop: 12 }}>Fetching source...</Text>
+                   </View>
+                 ) : SERVERS[selectedServer].needsImdb && !imdbId ? (
+                   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', padding: 20 }}>
+                     <Text style={{ color: '#ef4444', fontSize: 14, textAlign: 'center' }}>⚠️ IMDB ID not found for this title. Try another server.</Text>
+                   </View>
+                 ) : (
+                   <iframe 
+                      key={`player-${selectedMovie.tmdbId}-${selectedServer}`}
+                      src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId, 0, selectedServer, imdbId || undefined)} 
+                      style={{ width: '100%', height: '100%', border: 'none' }} 
+                      allowFullScreen 
+                      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                      sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+                   />
+                 )}
                  <View style={styles.customControls}>
                     {/* Server Switcher */}
                     <Text style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
@@ -1419,7 +1463,7 @@ const askAI = async () => {
                           }}
                         >
                           <Text style={{ color: selectedServer === index ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: selectedServer === index ? 'bold' : 'normal' }}>
-                            {selectedServer === index ? '▶ ' : ''}{server.name}
+                            {selectedServer === index ? '▶ ' : ''}{server.name}{server.needsImdb ? ' 🎬' : ''}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -1507,7 +1551,7 @@ const askAI = async () => {
                   `}</style>
                   <iframe
                     key={`wt-iframe-${wtMovie?.tmdbId}-${wtIframeKey}`}
-                    src={SERVER_URL(wtMovie.type, wtMovie.tmdbId, Math.max(0, wtLoadedOffset), selectedServer)}
+                    src={SERVER_URL(wtMovie.type, wtMovie.tmdbId, Math.max(0, wtLoadedOffset), selectedServer, imdbId || undefined)}
                     style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
