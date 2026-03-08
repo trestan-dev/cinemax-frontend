@@ -260,7 +260,7 @@ export default function App() {
   // ── NEW FEATURES ─────────────────────────────────────
   const [comingSoon, setComingSoon] = useState<any[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [categoryRows, setCategoryRows] = useState<{title: string, genre: number|null, type: string, items: any[]}[]>([]);
+  const [categoryRows, setCategoryRows] = useState<{title: string, icon?: string, iconColor?: string, genre: number|null, type: string, items: any[]}[]>([]);
   const [rowsLoading, setRowsLoading] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [homeSubTab, setHomeSubTab] = useState<'browse'|'coming'|'hot'>('browse');
@@ -1203,18 +1203,18 @@ const askAI = async () => {
 
   // ── FETCH CATEGORY ROWS (Netflix-style) ───────────────
   const CATEGORY_DEFS = [
-    { title: '🔥 Trending Now', genre: null, sort: 'popularity.desc' },
-    { title: '⭐ Top Rated', genre: null, sort: 'vote_average.desc', minVotes: 200 },
-    { title: '🎭 Drama', genre: 18, sort: 'popularity.desc' },
-    { title: '😂 Comedy', genre: 35, sort: 'popularity.desc' },
-    { title: '💀 Horror', genre: 27, sort: 'popularity.desc' },
-    { title: '🚀 Action', genre: 28, sort: 'popularity.desc' },
-    { title: '❤️ Romance', genre: 10749, sort: 'popularity.desc' },
-    { title: '🌏 K-Drama', genre: 18, sort: 'popularity.desc', country: 'KR' },
-    { title: '🇵🇭 Filipino', genre: null, sort: 'popularity.desc', country: 'PH' },
-    { title: '🎌 Anime', genre: 16, sort: 'popularity.desc', country: 'JP' },
-    { title: '🔬 Sci-Fi', genre: 878, sort: 'popularity.desc' },
-    { title: '🧩 Mystery & Thriller', genre: 53, sort: 'popularity.desc' },
+    { title: 'Trending Now',       icon: 'fa-fire',                iconColor: '#ef4444', genre: null,  sort: 'popularity.desc' },
+    { title: 'Top Rated',          icon: 'fa-trophy',              iconColor: '#f59e0b', genre: null,  sort: 'vote_average.desc', minVotes: 200 },
+    { title: 'Drama',              icon: 'fa-masks-theater',       iconColor: '#8b5cf6', genre: 18,   sort: 'popularity.desc' },
+    { title: 'Comedy',             icon: 'fa-face-laugh',          iconColor: '#f59e0b', genre: 35,   sort: 'popularity.desc' },
+    { title: 'Horror',             icon: 'fa-skull',               iconColor: '#dc2626', genre: 27,   sort: 'popularity.desc' },
+    { title: 'Action',             icon: 'fa-bolt',                iconColor: '#f97316', genre: 28,   sort: 'popularity.desc' },
+    { title: 'Romance',            icon: 'fa-heart',               iconColor: '#ec4899', genre: 10749, sort: 'popularity.desc' },
+    { title: 'K-Drama',            icon: 'fa-star',                iconColor: '#06b6d4', genre: 18,   sort: 'popularity.desc', country: 'KR' },
+    { title: 'Filipino',           icon: 'fa-sun',                 iconColor: '#fbbf24', genre: null,  sort: 'popularity.desc', country: 'PH' },
+    { title: 'Anime',              icon: 'fa-wand-magic-sparkles', iconColor: '#a78bfa', genre: 16,   sort: 'popularity.desc', country: 'JP' },
+    { title: 'Sci-Fi',             icon: 'fa-rocket',              iconColor: '#38bdf8', genre: 878,  sort: 'popularity.desc' },
+    { title: 'Mystery & Thriller', icon: 'fa-magnifying-glass',    iconColor: '#94a3b8', genre: 53,   sort: 'popularity.desc' },
   ];
 
   const fetchCategoryRows = async () => {
@@ -1238,7 +1238,7 @@ const askAI = async () => {
             synopsis: m.overview || '', rating: m.vote_average,
             genreIds: m.genre_ids
           }));
-          return { title: cat.title, genre: cat.genre, type, items };
+          return { title: cat.title, icon: (cat as any).icon, iconColor: (cat as any).iconColor, genre: cat.genre, type, items };
         })
       );
       setCategoryRows(results.filter(r => r.items.length > 0));
@@ -1247,8 +1247,6 @@ const askAI = async () => {
   };
 
 
-  useEffect(() => {
-    if (heroMovies.length > 0) {
       const interval = setInterval(() => {
         setHeroIndex((prev) => {
           const next = (prev + 1) % heroMovies.length;
@@ -2200,20 +2198,31 @@ const askAI = async () => {
         .cx-lb-meta { color: var(--text-muted); font-size: 10px; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
         .cx-lb-score { color: var(--red); font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 
-        /* ── SIDE FILTER PANEL ── */
-        .cx-side-layout { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+        /* ── TOP FILTER PANEL ── */
+        .cx-side-layout { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
         .cx-filter-side {
-          width: 260px; flex-shrink: 0;
-          background: var(--bg-secondary); border-right: 1px solid var(--border);
-          overflow-y: auto; padding: 14px;
-          transition: width 0.25s ease, opacity 0.25s ease;
+          width: 100%; flex-shrink: 0;
+          background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+          overflow: hidden; padding: 0 14px;
+          max-height: 0;
+          transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.25s ease;
+          opacity: 0;
         }
-        .cx-filter-side.closed { width: 0; overflow: hidden; opacity: 0; padding: 0; }
+        .cx-filter-side.open {
+          max-height: 420px; overflow-y: auto; padding: 14px;
+          opacity: 1;
+        }
         .cx-filter-side-title {
           color: var(--text-primary); font-weight: 800; font-size: 14px;
           margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
         }
         .cx-filter-side-title i { color: var(--accent); }
+        .cx-filter-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 14px 24px;
+        }
+        .cx-filter-col { display: flex; flex-direction: column; gap: 6px; }
         .cx-content-side { flex: 1; overflow-y: auto; min-width: 0; }
 
         /* ── HOME TABS (Coming Soon / Hot / Categories) ── */
@@ -2300,67 +2309,74 @@ const askAI = async () => {
       {!watchTogetherVisible && (
         <div className="cx-side-layout" style={{ flex: 1, minHeight: 0 }}>
 
-          {/* FILTER SIDE PANEL */}
-          <div className={`cx-filter-side ${filterPanelOpen ? '' : 'closed'}`}>
-            <div className="cx-filter-side-title"><i className="fa fa-sliders" />Filters</div>
-
-            <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
-            <div className="cx-date-row" style={{ marginBottom: 12 }}>
-              <input className="cx-date-input" value={yearFrom} onChange={e => handleYearFromChange(e.target.value)} placeholder="From" maxLength={4} />
-              <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>→</span>
-              <input className="cx-date-input" value={yearTo} onChange={e => handleYearToChange(e.target.value)} placeholder="To" maxLength={4} />
-            </div>
-
-            <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
-            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-              {MONTHS.map(m => (
-                <button key={`f-${m.val}`} className={`cx-chip ${monthFrom === m.val ? 'active' : ''}`}
-                  style={{ marginBottom: 4 }}
-                  onClick={() => { setMonthFrom(m.val); if (yearFrom === yearTo && parseInt(monthTo) < parseInt(m.val)) setMonthTo(m.val); }}>
-                  {m.name}
+          {/* FILTER TOP PANEL */}
+          <div className={`cx-filter-side ${filterPanelOpen ? 'open' : ''}`}>
+            <div className="cx-filter-grid">
+              {/* Col 1: Year */}
+              <div className="cx-filter-col">
+                <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
+                <div className="cx-date-row">
+                  <input className="cx-date-input" value={yearFrom} onChange={e => handleYearFromChange(e.target.value)} placeholder="From" maxLength={4} />
+                  <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>→</span>
+                  <input className="cx-date-input" value={yearTo} onChange={e => handleYearToChange(e.target.value)} placeholder="To" maxLength={4} />
+                </div>
+                <div className="cx-filter-label" style={{ marginTop: 8 }}><i className="fa fa-globe" />Region</div>
+                <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
+                  {COUNTRIES.map(c => (
+                    <button key={c.code} className={`cx-chip ${selectedCountry === c.code ? 'active' : ''}`}
+                      style={{ marginBottom: 4 }}
+                      onClick={() => setSelectedCountry(c.code)}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Col 2: Month From */}
+              <div className="cx-filter-col">
+                <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
+                <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
+                  {MONTHS.map(m => (
+                    <button key={`f-${m.val}`} className={`cx-chip ${monthFrom === m.val ? 'active' : ''}`}
+                      style={{ marginBottom: 4 }}
+                      onClick={() => { setMonthFrom(m.val); if (yearFrom === yearTo && parseInt(monthTo) < parseInt(m.val)) setMonthTo(m.val); }}>
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Col 3: Month To */}
+              <div className="cx-filter-col">
+                <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
+                <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
+                  {MONTHS.map(m => (
+                    <button key={`t-${m.val}`} className={`cx-chip ${monthTo === m.val ? 'active' : ''}`}
+                      style={{ marginBottom: 4 }}
+                      onClick={() => { if (!(yearFrom === yearTo && parseInt(m.val) < parseInt(monthFrom))) setMonthTo(m.val); }}>
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Col 4: Genres */}
+              <div className="cx-filter-col">
+                <div className="cx-filter-row-header" style={{ marginBottom: 6 }}>
+                  <div className="cx-filter-label" style={{ margin: 0 }}><i className="fa fa-masks-theater" />Genres</div>
+                  <input className="cx-genre-search" placeholder="Search..." value={genreSearch} onChange={e => setGenreSearch(e.target.value)} />
+                </div>
+                <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
+                  {filteredGenres.map(g => (
+                    <button key={g.name} className={`cx-chip ${selectedGenre === g.id ? 'active' : ''}`}
+                      style={{ marginBottom: 4 }}
+                      onClick={() => setSelectedGenre(selectedGenre === g.id ? null : g.id)}>
+                      {g.name}
+                    </button>
+                  ))}
+                </div>
+                <button className="cx-reset-btn" style={{ marginTop: 8 }} onClick={() => { setSelectedGenre(null); setSelectedCountry(''); setYearFrom('1990'); setYearTo(CURRENT_YEAR.toString()); setMonthFrom('01'); setMonthTo('12'); }}>
+                  <i className="fa fa-rotate-left" /> Reset Filters
                 </button>
-              ))}
+              </div>
             </div>
-
-            <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
-            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-              {MONTHS.map(m => (
-                <button key={`t-${m.val}`} className={`cx-chip ${monthTo === m.val ? 'active' : ''}`}
-                  style={{ marginBottom: 4 }}
-                  onClick={() => { if (!(yearFrom === yearTo && parseInt(m.val) < parseInt(monthFrom))) setMonthTo(m.val); }}>
-                  {m.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="cx-filter-row-header" style={{ marginBottom: 6 }}>
-              <div className="cx-filter-label" style={{ margin: 0 }}><i className="fa fa-masks-theater" />Genres</div>
-              <input className="cx-genre-search" placeholder="Search..." value={genreSearch} onChange={e => setGenreSearch(e.target.value)} />
-            </div>
-            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-              {filteredGenres.map(g => (
-                <button key={g.name} className={`cx-chip ${selectedGenre === g.id ? 'active' : ''}`}
-                  style={{ marginBottom: 4 }}
-                  onClick={() => setSelectedGenre(selectedGenre === g.id ? null : g.id)}>
-                  {g.name}
-                </button>
-              ))}
-            </div>
-
-            <div className="cx-filter-label"><i className="fa fa-globe" />Region</div>
-            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
-              {COUNTRIES.map(c => (
-                <button key={c.code} className={`cx-chip ${selectedCountry === c.code ? 'active' : ''}`}
-                  style={{ marginBottom: 4 }}
-                  onClick={() => setSelectedCountry(c.code)}>
-                  {c.name}
-                </button>
-              ))}
-            </div>
-
-            <button className="cx-reset-btn" onClick={() => { setSelectedGenre(null); setSelectedCountry(''); setYearFrom('1990'); setYearTo(CURRENT_YEAR.toString()); setMonthFrom('01'); setMonthTo('12'); }}>
-              <i className="fa fa-rotate-left" /> Reset Filters
-            </button>
           </div>
 
           {/* CONTENT SIDE */}
@@ -2379,10 +2395,10 @@ const askAI = async () => {
                     horizontal pagingEnabled showsHorizontalScrollIndicator={false}
                     onScroll={handleOnScroll} scrollEventThrottle={16}
                     snapToAlignment="center" decelerationRate="fast"
-                    contentContainerStyle={{ width: (filterPanelOpen && width > 768 ? width - 260 : width) * heroMovies.length }}
+                    contentContainerStyle={{ width: width * heroMovies.length }}
                   >
                     {heroMovies.map((m, i) => {
-                      const w = filterPanelOpen && width > 768 ? width - 260 : width;
+                      const w = width;
                       return (
                         <View key={i} style={{ width: w, height: width < 480 ? 280 : 380, overflow: 'hidden' }}>
                           <Image source={{ uri: m.banner }} style={{ width: '100%', height: '100%', opacity: 0.55, resizeMode: 'cover' }} />
@@ -2456,7 +2472,7 @@ const askAI = async () => {
                 <div className="cx-lb-section">
                   <div className="cx-lb-header">
                     <div>
-                      <div className="cx-lb-title">🔥 HOT</div>
+                      <div className="cx-lb-title"><i className="fa fa-fire" style={{ color: '#ef4444', fontSize: 22, marginRight: 8 }} />HOT</div>
                       <div className="cx-lb-subtitle">Ranked by popularity · updated daily</div>
                     </div>
                   </div>
@@ -2475,7 +2491,7 @@ const askAI = async () => {
                         </div>
                       </div>
                       <div className="cx-lb-score">
-                        🔥 {m.score.toLocaleString()}
+                        <i className="fa fa-fire" style={{ color: '#ef4444', fontSize: 11 }} /> {m.score.toLocaleString()}
                       </div>
                     </div>
                   ))}
@@ -2493,7 +2509,10 @@ const askAI = async () => {
                       ) : categoryRows.map((row, ri) => (
                         <div key={ri} className="cx-row-section">
                           <div className="cx-row-header">
-                            <span className="cx-row-title">{row.title}</span>
+                            <span className="cx-row-title">
+                              {row.icon && <i className={`fa ${row.icon}`} style={{ color: row.iconColor || 'var(--accent)', marginRight: 7, fontSize: 13 }} />}
+                              {row.title}
+                            </span>
                             <button className="cx-row-see-all"><i className="fa fa-chevron-right" /> See All</button>
                           </div>
                           <div className="cx-row-scroll">
