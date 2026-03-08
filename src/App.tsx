@@ -91,6 +91,46 @@ const SERVERS = [
     }
   },
   {
+    name: "VidLink",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://vidlink.pro/${t}/${id}?autoplay=true&primaryColor=4f8ef7`;
+    }
+  },
+  {
+    name: "2Embed",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://www.2embed.stream/embed/${t}/${id}`;
+    }
+  },
+  {
+    name: "SuperEmbed",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      if (type === 'tv') return `https://multiembed.mov/?video_id=${id}&tmdb=1`;
+      return `https://multiembed.mov/?video_id=${id}&tmdb=1`;
+    }
+  },
+  {
+    name: "Embed.su",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://embed.su/embed/${t}/${id}`;
+    }
+  },
+  {
+    name: "VidSrc ME",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://vidsrc.me/embed/${t}?tmdb=${id}`;
+    }
+  },
+  {
     name: "VidSrc ICU",
     needsImdb: false,
     getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
@@ -123,11 +163,27 @@ const SERVERS = [
     }
   },
   {
+    name: "NontonGo",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://www.NontonGo.net/embed/${t}/${id}`;
+    }
+  },
+  {
     name: "GoDrive",
     needsImdb: true,
     getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
       if (!imdbId) return '';
       return `https://godriveplayer.com/player.php?imdb=${imdbId}`;
+    }
+  },
+  {
+    name: "AutoEmbed",
+    needsImdb: false,
+    getUrl: (type: string, id: any, startAt: number = 0, imdbId?: string) => {
+      const t = type === 'tv' ? 'tv' : 'movie';
+      return `https://autoembed.co/embed/${t}/${id}`;
     }
   },
 ];
