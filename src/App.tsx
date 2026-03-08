@@ -1247,6 +1247,8 @@ const askAI = async () => {
   };
 
 
+  useEffect(() => {
+    if (heroMovies.length > 0) {
       const interval = setInterval(() => {
         setHeroIndex((prev) => {
           const next = (prev + 1) % heroMovies.length;
