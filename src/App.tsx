@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, useWindowDimension
 import Peer from 'peerjs';
 import { Dimensions } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-//wala lang
+
 const handleSmartLink = () => {
   // Replace this with your actual Direct Link from Adsterra
   const smartLinkUrl = "https://www.effectivegatecpm.com/ba4n4bn1u?key=c4d46c1a4f74e3aea4ebb8725567fe32";
@@ -1208,343 +1208,1079 @@ const askAI = async () => {
   const filteredGenres = GENRES.filter(g => g.name.toLowerCase().includes(genreSearch.toLowerCase()));
 
   return (
-    <View style={styles.container}>
+    <div style={{ flex: 1, background: 'var(--bg-primary)', overflow: 'hidden', maxWidth: '100vw', display: 'flex', flexDirection: 'column', minHeight: '100vh' } as any}>
       <style>{`
-        * { box-sizing: border-box; }
-        html, body, #root { margin: 0; padding: 0; overflow-x: hidden; width: 100%; max-width: 100vw; background: #0b1622; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-        .blink-dot { animation: blink 1.5s infinite; }
-        .ad-container { background: #0b1622; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;900&display=swap');
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
+
+        :root {
+          --bg-primary: #080e17;
+          --bg-secondary: #0d1623;
+          --bg-card: #111c2d;
+          --bg-elevated: #162033;
+          --accent: #4f8ef7;
+          --accent-glow: rgba(79,142,247,0.25);
+          --accent-dim: #2a5cbf;
+          --green: #22c55e;
+          --red: #ef4444;
+          --gold: #f59e0b;
+          --text-primary: #f0f4ff;
+          --text-secondary: #8a9bb5;
+          --text-muted: #3d5070;
+          --border: #1a2740;
+          --border-light: #243350;
+          --radius: 10px;
+          --radius-lg: 16px;
+          --font-display: 'Bebas Neue', sans-serif;
+          --font-body: 'Outfit', sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body, #root {
+          background: var(--bg-primary);
+          font-family: var(--font-body);
+          overflow-x: hidden;
+          width: 100%;
+          max-width: 100vw;
+          -webkit-font-smoothing: antialiased;
+        }
+        iframe { -webkit-overflow-scrolling: touch; border: none !important; }
+        video { -webkit-playsinline: true; playsinline: true; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+        input, textarea { font-family: var(--font-body); }
+
+        /* ── HEADER ── */
+        .cx-header {
+          background: linear-gradient(180deg, #0a1525 0%, rgba(10,21,37,0.95) 100%);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid var(--border);
+          position: sticky; top: 0; z-index: 200;
+          padding: 0 20px;
+        }
+        .cx-header-top {
+          display: flex; align-items: center; gap: 14px;
+          padding: 12px 0; width: 100%;
+        }
+        .cx-logo {
+          font-family: var(--font-display);
+          font-size: 28px; letter-spacing: 2px;
+          color: var(--text-primary);
+          flex-shrink: 0; line-height: 1;
+          text-shadow: 0 0 20px var(--accent-glow);
+        }
+        .cx-logo span { color: var(--accent); }
+        .cx-search-wrap {
+          flex: 1; position: relative; min-width: 0;
+        }
+        .cx-search-wrap i {
+          position: absolute; left: 14px; top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-muted); font-size: 13px; pointer-events: none;
+        }
+        .cx-search {
+          width: 100%; background: var(--bg-card);
+          border: 1px solid var(--border);
+          color: var(--text-primary);
+          padding: 9px 14px 9px 38px;
+          border-radius: 25px; font-size: 13px;
+          font-family: var(--font-body);
+          transition: border-color 0.2s, box-shadow 0.2s;
+          outline: none;
+        }
+        .cx-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .cx-search::placeholder { color: var(--text-muted); }
+
+        /* ── NAV ── */
+        .cx-nav { display: flex; gap: 4px; padding: 0 0 10px; overflow-x: auto; }
+        .cx-nav::-webkit-scrollbar { display: none; }
+        .cx-nav-btn {
+          background: none; border: none; cursor: pointer;
+          color: var(--text-secondary); font-family: var(--font-body);
+          font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+          padding: 7px 14px; border-radius: 8px;
+          white-space: nowrap; display: flex; align-items: center; gap: 6px;
+          transition: all 0.2s; flex-shrink: 0;
+        }
+        .cx-nav-btn:hover { color: var(--text-primary); background: var(--bg-elevated); }
+        .cx-nav-btn.active { color: var(--accent); background: var(--accent-glow); }
+        .cx-nav-btn.live { color: var(--green); }
+        .cx-nav-btn i { font-size: 12px; }
+
+        /* ── FILTER DRAWER ── */
+        .cx-filter-drawer {
+          background: var(--bg-secondary);
+          border-bottom: 1px solid var(--border);
+          padding: 16px 20px; max-height: 380px; overflow-y: auto;
+        }
+        .cx-filter-label {
+          color: var(--text-muted); font-size: 10px; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 1.2px;
+          margin: 14px 0 8px; display: flex; align-items: center; gap: 6px;
+        }
+        .cx-filter-label i { font-size: 10px; color: var(--accent); }
+        .cx-chip-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+        .cx-chip-row::-webkit-scrollbar { display: none; }
+        .cx-chip {
+          background: var(--bg-card); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 6px 14px;
+          border-radius: 20px; font-size: 12px; font-family: var(--font-body);
+          cursor: pointer; white-space: nowrap; flex-shrink: 0;
+          transition: all 0.15s;
+        }
+        .cx-chip:hover { border-color: var(--accent); color: var(--text-primary); }
+        .cx-chip.active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); font-weight: 600; }
+        .cx-date-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+        .cx-date-input {
+          background: var(--bg-card); border: 1px solid var(--border);
+          color: var(--text-primary); padding: 8px 12px;
+          border-radius: var(--radius); width: 90px; text-align: center;
+          font-size: 13px; font-family: var(--font-body); outline: none;
+        }
+        .cx-date-input:focus { border-color: var(--accent); }
+        .cx-reset-btn {
+          background: rgba(239,68,68,0.08); border: 1px solid var(--red);
+          color: var(--red); padding: 10px 20px; border-radius: 25px;
+          font-size: 12px; font-weight: 600; font-family: var(--font-body);
+          cursor: pointer; margin-top: 16px; margin-bottom: 8px;
+          display: flex; align-items: center; gap: 6px; width: 100%;
+          justify-content: center; transition: all 0.2s;
+        }
+        .cx-reset-btn:hover { background: rgba(239,68,68,0.18); }
+        .cx-genre-search {
+          background: var(--bg-card); border: 1px solid var(--border);
+          color: var(--text-primary); padding: 6px 12px;
+          border-radius: 15px; font-size: 11px; font-family: var(--font-body);
+          width: 130px; outline: none;
+        }
+        .cx-filter-row-header { display: flex; justify-content: space-between; align-items: center; }
+
+        /* ── HERO ── */
+        .cx-hero { position: relative; width: 100%; overflow: hidden; background: #000; }
+        .cx-hero-badge {
+          position: absolute; top: 16px; left: 16px; z-index: 10;
+          background: rgba(10,21,37,0.7); backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.12);
+          padding: 5px 12px; border-radius: 20px;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .cx-hero-badge-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #ff4b4b;
+          animation: blink 1.5s infinite;
+        }
+        .cx-hero-badge-text {
+          color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px;
+          font-family: var(--font-body);
+        }
+        .cx-hero-overlay {
+          position: absolute; bottom: 0; left: 0; right: 0;
+          background: linear-gradient(0deg, rgba(8,14,23,1) 0%, rgba(8,14,23,0.7) 40%, transparent 100%);
+          padding: 40px 24px 50px;
+        }
+        .cx-hero-rank {
+          font-family: var(--font-display);
+          font-size: 90px; color: rgba(255,255,255,0.12);
+          line-height: 0.85; float: left; margin-right: 16px;
+        }
+        .cx-hero-title {
+          font-family: var(--font-display);
+          font-size: 32px; letter-spacing: 1px;
+          color: #fff; line-height: 1; margin-bottom: 8px;
+        }
+        .cx-hero-meta { color: var(--text-secondary); font-size: 12px; margin-bottom: 10px; }
+        .cx-hero-synopsis { color: #aab; font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+        .cx-hero-play-btn {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: var(--accent); color: #fff;
+          padding: 10px 20px; border-radius: 8px;
+          font-size: 13px; font-weight: 700; border: none; cursor: pointer;
+          font-family: var(--font-body); letter-spacing: 0.5px;
+          transition: all 0.2s; box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        .cx-hero-play-btn:hover { background: #6aa0ff; transform: translateY(-1px); }
+        .cx-hero-dots {
+          position: absolute; bottom: 14px; left: 0; right: 0;
+          display: flex; justify-content: center; gap: 6px; z-index: 5;
+        }
+        .cx-dot { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.25); transition: all 0.3s; }
+        .cx-dot.active { width: 20px; background: var(--accent); }
+
+        /* ── MOVIE GRID ── */
+        .cx-section { padding: 16px; min-height: 300px; }
+        .cx-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .cx-card {
+          cursor: pointer; position: relative; border-radius: var(--radius);
+          overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cx-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
+        .cx-card:hover .cx-card-overlay { opacity: 1; }
+        .cx-card-overlay {
+          position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.9) 100%);
+          opacity: 0; transition: opacity 0.2s;
+          display: flex; align-items: flex-end; padding: 10px;
+        }
+        .cx-card-play {
+          width: 36px; height: 36px; background: var(--accent);
+          border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          margin: 0 auto 6px;
+        }
+        .cx-card-play i { color: #fff; font-size: 13px; margin-left: 2px; }
+        .cx-card-title {
+          color: var(--text-secondary); font-size: 11px;
+          text-align: center; margin-top: 6px; padding: 0 2px;
+          font-family: var(--font-body);
+        }
+        .cx-rating-badge {
+          position: absolute; top: 6px; right: 6px;
+          background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+          border-radius: 6px; padding: 3px 7px;
+          color: var(--gold); font-size: 10px; font-weight: 700;
+          display: flex; align-items: center; gap: 3px;
+        }
+
+        /* ── PAGINATION ── */
+        .cx-pagination {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px; margin-top: 24px; gap: 10px;
+        }
+        .cx-page-btn {
+          background: var(--accent); color: #fff; border: none;
+          padding: 10px 20px; border-radius: 8px; font-size: 12px;
+          font-weight: 700; font-family: var(--font-body); cursor: pointer;
+          display: flex; align-items: center; gap: 6px;
+          transition: all 0.2s; letter-spacing: 0.5px;
+        }
+        .cx-page-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .cx-page-btn:not(:disabled):hover { background: #6aa0ff; }
+        .cx-page-info { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 12px; }
+        .cx-page-input {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-primary); padding: 6px 8px;
+          width: 50px; text-align: center; border-radius: 6px;
+          font-size: 13px; font-family: var(--font-body); outline: none;
+        }
+        .cx-page-input:focus { border-color: var(--accent); }
+
+        /* ── MODAL ── */
+        .cx-modal-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+          z-index: 1000; display: flex; align-items: center; justify-content: center;
+          padding: 12px; backdrop-filter: blur(6px);
+        }
+        .cx-modal {
+          width: 100%; max-width: 720px; background: var(--bg-secondary);
+          border-radius: var(--radius-lg); overflow: hidden;
+          border: 1px solid var(--border); position: relative;
+          max-height: 92vh; display: flex; flex-direction: column;
+        }
+        .cx-modal-close {
+          position: absolute; top: 12px; right: 12px; z-index: 30;
+          background: rgba(0,0,0,0.6); border: 1px solid var(--border);
+          color: var(--text-secondary); width: 36px; height: 36px;
+          border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; font-size: 13px; transition: all 0.2s; border: none;
+        }
+        .cx-modal-close:hover { background: var(--red); color: #fff; }
+        .cx-modal-banner { width: 100%; height: 220px; object-fit: cover; display: block; }
+        .cx-modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .cx-modal-title {
+          font-family: var(--font-display);
+          font-size: 30px; letter-spacing: 1px; color: var(--text-primary);
+          line-height: 1; margin-bottom: 10px;
+        }
+        .cx-modal-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .cx-modal-date { color: var(--text-muted); font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .cx-modal-rating { color: var(--gold); font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 5px; }
+        .cx-genre-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .cx-genre-tag {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 4px 10px;
+          border-radius: 6px; font-size: 11px; font-weight: 600;
+        }
+        .cx-synopsis { color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+        .cx-server-badge {
+          background: var(--bg-card); border-left: 3px solid var(--accent);
+          padding: 10px 14px; border-radius: 0 var(--radius) var(--radius) 0;
+          margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+        }
+        .cx-server-badge-text { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .cx-server-badge-val { color: var(--accent); font-size: 11px; font-weight: 700; }
+        .cx-watch-btn {
+          width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+          color: #fff; border: none; padding: 16px; border-radius: 30px;
+          font-size: 15px; font-weight: 700; font-family: var(--font-body);
+          cursor: pointer; letter-spacing: 1px; display: flex; align-items: center;
+          justify-content: center; gap: 10px;
+          box-shadow: 0 6px 24px var(--accent-glow); transition: all 0.2s;
+        }
+        .cx-watch-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 30px var(--accent-glow); }
+
+        /* ── PLAYER CONTROLS BAR ── */
+        .cx-player-bar {
+          background: var(--bg-secondary); border-top: 1px solid var(--border);
+          padding: 14px 16px;
+        }
+        .cx-server-label {
+          color: var(--text-muted); font-size: 10px; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .cx-server-label i { color: var(--accent); font-size: 10px; }
+        .cx-server-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+        .cx-server-row::-webkit-scrollbar { display: none; }
+        .cx-server-btn {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 7px 14px;
+          border-radius: 20px; font-size: 12px; font-weight: 600;
+          font-family: var(--font-body); cursor: pointer; white-space: nowrap;
+          flex-shrink: 0; transition: all 0.15s;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .cx-server-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+        .cx-server-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .cx-promo-row {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-top: 12px; gap: 10px; flex-wrap: wrap;
+        }
+        .cx-promo-text { color: var(--text-muted); font-size: 11px; flex: 1; min-width: 180px; }
+        .cx-copy-btn {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 8px 16px;
+          border-radius: 20px; font-size: 11px; font-weight: 600;
+          font-family: var(--font-body); cursor: pointer; white-space: nowrap;
+          display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .cx-copy-btn.copied { background: rgba(34,197,94,0.15); border-color: var(--green); color: var(--green); }
+        .cx-copy-btn:hover:not(.copied) { border-color: var(--accent); color: var(--accent); }
+
+        /* ── WATCH TOGETHER ── */
+        .cx-wt-topbar {
+          background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+          padding: 12px 16px; display: flex; align-items: center;
+          justify-content: space-between; flex-shrink: 0;
+        }
+        .cx-wt-back {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); width: 34px; height: 34px;
+          border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; font-size: 13px; transition: all 0.2s; border: none;
+        }
+        .cx-wt-back:hover { border-color: var(--accent); color: var(--accent); }
+        .cx-wt-title { color: var(--text-primary); font-weight: 700; font-size: 15px; }
+        .cx-wt-status-text { font-size: 10px; margin-top: 2px; }
+        .cx-leave-btn {
+          background: rgba(239,68,68,0.1); border: 1px solid var(--red);
+          color: var(--red); padding: 7px 14px; border-radius: 20px;
+          font-size: 11px; font-weight: 600; font-family: var(--font-body);
+          cursor: pointer; display: flex; align-items: center; gap: 5px;
+          transition: all 0.2s;
+        }
+        .cx-leave-btn:hover { background: rgba(239,68,68,0.2); }
+        .cx-status-banner {
+          padding: 8px 16px; border-bottom: 1px solid;
+          display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+        }
+        .cx-room-card {
+          background: var(--bg-card); border-radius: var(--radius-lg);
+          padding: 16px; border: 1px solid var(--border);
+        }
+        .cx-room-card-title {
+          color: var(--text-primary); font-weight: 700; font-size: 14px;
+          margin-bottom: 4px; display: flex; align-items: center; gap: 8px;
+        }
+        .cx-room-card-title i { color: var(--accent); font-size: 13px; }
+        .cx-room-card-desc { color: var(--text-muted); font-size: 12px; line-height: 1.5; margin-bottom: 14px; }
+        .cx-create-btn {
+          width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+          color: #fff; border: none; padding: 14px; border-radius: 25px;
+          font-size: 14px; font-weight: 700; font-family: var(--font-body);
+          cursor: pointer; display: flex; align-items: center; justify-content: center;
+          gap: 8px; transition: all 0.2s; box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .cx-create-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+        .cx-create-btn:not(:disabled):hover { transform: translateY(-1px); }
+        .cx-join-btn {
+          width: 100%; background: linear-gradient(135deg, #16a34a, #15803d);
+          color: #fff; border: none; padding: 14px; border-radius: 25px;
+          font-size: 14px; font-weight: 700; font-family: var(--font-body);
+          cursor: pointer; display: flex; align-items: center; justify-content: center;
+          gap: 8px; transition: all 0.2s; box-shadow: 0 4px 16px rgba(22,163,74,0.3);
+        }
+        .cx-join-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+        .cx-join-btn:not(:disabled):hover { transform: translateY(-1px); }
+        .cx-room-id-box {
+          background: var(--bg-primary); border: 1px solid var(--accent);
+          border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px;
+        }
+        .cx-room-id-label { color: var(--text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .cx-room-id-val { color: var(--accent); font-size: 12px; font-weight: 600; word-break: break-all; }
+        .cx-room-actions { display: flex; gap: 8px; }
+        .cx-copy-room-btn {
+          flex: 1; background: var(--accent); color: #fff; border: none;
+          padding: 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+          font-family: var(--font-body); cursor: pointer; display: flex;
+          align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;
+        }
+        .cx-copy-room-btn.copied { background: var(--green); }
+        .cx-cancel-btn {
+          background: rgba(239,68,68,0.1); border: 1px solid var(--red);
+          color: var(--red); padding: 12px 16px; border-radius: 20px;
+          font-size: 12px; font-weight: 600; font-family: var(--font-body);
+          cursor: pointer; transition: all 0.2s;
+        }
+        .cx-waiting-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+        .cx-waiting-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: blink 1.5s infinite; flex-shrink: 0; }
+        .cx-join-input {
+          width: 100%; background: var(--bg-primary); border: 1px solid var(--border);
+          color: var(--text-primary); border-radius: var(--radius);
+          padding: 12px 14px; font-size: 13px; font-family: var(--font-body);
+          outline: none; margin-bottom: 12px;
+        }
+        .cx-join-input:focus { border-color: var(--accent); }
+        .cx-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; }
+        .cx-divider-line { flex: 1; height: 1px; background: var(--border); }
+        .cx-divider-text { color: var(--text-muted); font-size: 11px; }
+        .cx-howto-card {
+          background: var(--bg-card); border-radius: var(--radius-lg);
+          padding: 16px; border: 1px solid var(--border);
+        }
+        .cx-howto-title {
+          color: var(--accent); font-size: 10px; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .cx-howto-step { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+        .cx-howto-num {
+          width: 22px; height: 22px; border-radius: 50%;
+          background: var(--accent-glow); border: 1px solid var(--accent);
+          color: var(--accent); font-size: 10px; font-weight: 700;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+        }
+        .cx-howto-text { color: var(--text-secondary); font-size: 12px; line-height: 1.5; }
+        .cx-connected-strip {
+          background: rgba(34,197,94,0.08); border-bottom: 1px solid rgba(34,197,94,0.2);
+          padding: 10px 16px; display: flex; align-items: center;
+          justify-content: space-between; flex-shrink: 0;
+        }
+        .cx-connected-role { color: var(--green); font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .cx-connected-sub { color: rgba(34,197,94,0.6); font-size: 10px; margin-top: 1px; }
+        .cx-sync-btn {
+          background: rgba(34,197,94,0.12); border: 1px solid var(--green);
+          color: var(--green); padding: 6px 12px; border-radius: 15px;
+          font-size: 10px; font-weight: 700; font-family: var(--font-body);
+          cursor: pointer; display: flex; align-items: center; gap: 5px;
+        }
+        .cx-change-btn {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 6px 12px; border-radius: 15px;
+          font-size: 10px; font-weight: 600; font-family: var(--font-body);
+          cursor: pointer; display: flex; align-items: center; gap: 5px;
+        }
+        .cx-chat-messages { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg-primary); }
+        .cx-chat-msg { margin-bottom: 8px; display: flex; flex-direction: column; }
+        .cx-chat-msg.me { align-items: flex-end; }
+        .cx-chat-msg.friend { align-items: flex-start; }
+        .cx-chat-bubble {
+          max-width: 80%; padding: 8px 12px; border-radius: 14px; font-size: 12px;
+          font-family: var(--font-body); line-height: 1.4;
+        }
+        .cx-chat-bubble.me { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+        .cx-chat-bubble.friend { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .cx-chat-time { color: var(--text-muted); font-size: 9px; margin-top: 3px; }
+        .cx-chat-input-row {
+          display: flex; gap: 8px; padding: 12px;
+          background: var(--bg-secondary); border-top: 1px solid var(--border); flex-shrink: 0;
+        }
+        .cx-chat-input {
+          flex: 1; background: var(--bg-primary); border: 1px solid var(--border);
+          color: var(--text-primary); border-radius: 25px;
+          padding: 9px 16px; font-size: 12px; font-family: var(--font-body); outline: none;
+        }
+        .cx-chat-input:focus { border-color: var(--accent); }
+        .cx-send-btn {
+          background: var(--accent); border: none; color: #fff;
+          width: 38px; height: 38px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; font-size: 13px; flex-shrink: 0; transition: all 0.2s;
+        }
+        .cx-send-btn:hover { background: #6aa0ff; }
+
+        /* ── AI CHAT ── */
+        .cx-ai-fab {
+          position: fixed; right: 20px; bottom: 24px; z-index: 998;
+          width: 58px; height: 58px; border-radius: 50%;
+          background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+          border: 1.5px solid rgba(255,255,255,0.2);
+          box-shadow: 0 8px 24px var(--accent-glow);
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: all 0.2s;
+        }
+        .cx-ai-fab:hover { transform: scale(1.08); box-shadow: 0 12px 32px rgba(79,142,247,0.5); }
+        .cx-ai-fab i { color: #fff; font-size: 22px; }
+        .cx-ai-online-dot {
+          position: absolute; bottom: 8px; right: 7px;
+          width: 10px; height: 10px; border-radius: 50%;
+          background: var(--green); border: 2px solid var(--accent-dim);
+        }
+        .cx-ai-peek {
+          position: fixed; right: -36px; bottom: 120px; z-index: 997;
+          width: 58px; height: 58px; border-radius: 50%;
+          background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+          border: 1.5px solid rgba(255,255,255,0.2);
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+        }
+        .cx-ai-peek i { color: #fff; font-size: 20px; }
+        .cx-ai-header {
+          background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+          padding: 14px 16px; display: flex; align-items: center;
+          justify-content: space-between; flex-shrink: 0;
+        }
+        .cx-ai-header-left { display: flex; align-items: center; gap: 12px; }
+        .cx-ai-icon {
+          width: 40px; height: 40px; border-radius: 50%;
+          background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .cx-ai-icon i { color: #fff; font-size: 18px; }
+        .cx-ai-name { color: var(--accent); font-weight: 800; font-size: 16px; }
+        .cx-ai-name span { color: var(--text-primary); }
+        .cx-ai-online { color: var(--green); font-size: 10px; margin-top: 1px; display: flex; align-items: center; gap: 4px; }
+        .cx-ai-clear {
+          background: none; border: none; color: var(--red);
+          font-size: 11px; font-weight: 700; font-family: var(--font-body);
+          cursor: pointer; padding: 6px 10px; border-radius: 8px;
+          transition: all 0.2s;
+        }
+        .cx-ai-clear:hover { background: rgba(239,68,68,0.1); }
+        .cx-ai-messages { flex: 1; overflow-y: auto; padding: 16px; background: var(--bg-primary); }
+        .cx-ai-msg { margin-bottom: 16px; display: flex; flex-direction: column; }
+        .cx-ai-msg.user { align-items: flex-end; }
+        .cx-ai-msg.bot { align-items: flex-start; }
+        .cx-ai-bubble {
+          max-width: 85%; padding: 11px 14px; border-radius: 18px;
+          font-size: 13px; line-height: 1.5; font-family: var(--font-body);
+        }
+        .cx-ai-bubble.user { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+        .cx-ai-bubble.bot { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .cx-ai-time { color: var(--text-muted); font-size: 9px; margin-top: 4px; font-weight: 600; text-transform: uppercase; }
+        .cx-quick-row {
+          padding: 8px 12px; background: var(--bg-secondary);
+          border-top: 1px solid var(--border); display: flex; gap: 6px; overflow-x: auto;
+          flex-shrink: 0;
+        }
+        .cx-quick-row::-webkit-scrollbar { display: none; }
+        .cx-quick-chip {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 6px 12px;
+          border-radius: 15px; font-size: 11px; font-family: var(--font-body);
+          cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.15s;
+        }
+        .cx-quick-chip:hover { border-color: var(--accent); color: var(--accent); }
+        .cx-ai-input-row {
+          display: flex; gap: 8px; padding: 12px 16px;
+          background: var(--bg-secondary); border-top: 1px solid var(--border); flex-shrink: 0;
+        }
+        .cx-ai-input {
+          flex: 1; background: var(--bg-primary); border: 1px solid var(--border);
+          color: var(--text-primary); border-radius: 25px;
+          padding: 10px 18px; font-size: 13px; font-family: var(--font-body);
+          outline: none; height: 44px;
+        }
+        .cx-ai-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .cx-ai-send {
+          background: var(--accent); border: none; color: #fff;
+          width: 44px; height: 44px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; font-size: 15px; flex-shrink: 0; transition: all 0.2s;
+        }
+        .cx-ai-send:hover { background: #6aa0ff; transform: scale(1.05); }
+
+        /* ── PICKER ── */
+        .cx-picker-header {
+          background: var(--bg-secondary); padding: 16px;
+          border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        .cx-picker-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .cx-picker-title { color: var(--text-primary); font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .cx-picker-title i { color: var(--accent); }
+        .cx-picker-close {
+          background: var(--bg-elevated); border: none; color: var(--text-secondary);
+          width: 34px; height: 34px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; font-size: 13px; transition: all 0.2s;
+        }
+        .cx-picker-close:hover { background: var(--red); color: #fff; }
+        .cx-picker-search {
+          width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-primary); border-radius: 25px;
+          padding: 10px 16px; font-size: 13px; font-family: var(--font-body);
+          outline: none; margin-bottom: 10px;
+        }
+        .cx-picker-search:focus { border-color: var(--accent); }
+        .cx-type-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+        .cx-type-btn {
+          padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
+          font-family: var(--font-body); cursor: pointer; border: 1px solid;
+          display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+        }
+        .cx-type-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .cx-type-btn:not(.active) { background: var(--bg-elevated); border-color: var(--border); color: var(--text-secondary); }
+
+        /* ── PiP ── */
+        .cx-pip {
+          position: fixed; bottom: 90px; right: 16px;
+          width: 200px; height: 120px; border-radius: var(--radius);
+          overflow: hidden; z-index: 800;
+          border: 2px solid var(--accent);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+        }
+        .cx-pip-controls {
+          position: absolute; top: 5px; right: 5px;
+          display: flex; gap: 4px; z-index: 5;
+        }
+        .cx-pip-btn {
+          background: rgba(0,0,0,0.75); border: none; color: #fff;
+          padding: 4px 8px; border-radius: 8px; font-size: 9px;
+          font-weight: 700; font-family: var(--font-body); cursor: pointer;
+          display: flex; align-items: center; gap: 3px; transition: all 0.2s;
+        }
+        .cx-pip-btn.expand { background: rgba(79,142,247,0.85); }
+        .cx-pip-live {
+          position: absolute; bottom: 5px; left: 5px;
+          background: rgba(34,197,94,0.85); color: #fff;
+          padding: 2px 7px; border-radius: 8px; font-size: 8px; font-weight: 700;
+          font-family: var(--font-body); display: flex; align-items: center; gap: 3px;
+        }
+
+        /* ── WiP minimized bar ── */
+        .cx-minimized-bar {
+          background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+          padding: 10px 16px; display: flex; align-items: center;
+          justify-content: space-between; flex-shrink: 0;
+        }
+        .cx-minimized-info { display: flex; align-items: center; gap: 10px; }
+        .cx-minimized-expand {
+          background: var(--accent); border: none; color: #fff;
+          padding: 7px 14px; border-radius: 20px; font-size: 11px;
+          font-weight: 700; font-family: var(--font-body); cursor: pointer;
+          display: flex; align-items: center; gap: 5px;
+        }
+
+        /* ── SYNC INPUT OVERLAY ── */
+        .cx-sync-overlay {
+          position: absolute; top: 10px; left: 10px; right: 90px; z-index: 20;
+          background: rgba(8,14,23,0.97); border-radius: var(--radius-lg);
+          padding: 14px; border: 1px solid var(--green);
+        }
+        .cx-sync-overlay-title { color: var(--green); font-weight: 700; font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .cx-sync-time-display {
+          background: rgba(34,197,94,0.08); border-radius: var(--radius);
+          padding: 10px; margin-bottom: 10px; border: 1px solid rgba(34,197,94,0.2);
+        }
+        .cx-sync-time-label { color: var(--text-muted); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+        .cx-sync-time-val { color: var(--green); font-size: 22px; font-weight: 900; font-family: var(--font-display); letter-spacing: 2px; }
+        .cx-sync-manual-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .cx-sync-manual-input {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-primary); border-radius: 8px;
+          padding: 8px; width: 55px; text-align: center; font-size: 15px;
+          font-weight: 700; font-family: var(--font-body); outline: none;
+        }
+        .cx-sync-manual-sep { color: var(--text-primary); font-size: 16px; font-weight: 700; }
+        .cx-sync-actions { display: flex; gap: 8px; }
+        .cx-sync-push-btn {
+          flex: 1; background: var(--green); border: none; color: #fff;
+          padding: 10px; border-radius: 20px; font-size: 12px; font-weight: 700;
+          font-family: var(--font-body); cursor: pointer; display: flex;
+          align-items: center; justify-content: center; gap: 5px;
+        }
+        .cx-sync-cancel-btn {
+          background: var(--bg-elevated); border: 1px solid var(--border);
+          color: var(--text-secondary); padding: 10px 14px;
+          border-radius: 20px; font-size: 13px; font-family: var(--font-body); cursor: pointer;
+        }
+
+        /* ── Drift indicator ── */
+        .cx-drift-badge {
+          position: absolute; bottom: 10px; left: 10px;
+          background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+          border-radius: 10px; padding: 5px 10px; border: 1px solid rgba(34,197,94,0.3);
+        }
+        .cx-drift-text { color: var(--green); font-size: 10px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+
+        /* ── Minimized video row in WT ── */
+        .cx-wt-minimized-row {
+          display: flex; align-items: center; gap: 10px;
+        }
+
+        /* ── AD slot ── */
+        .cx-ad-slot {
+          background: var(--bg-secondary); border: 1px dashed var(--border);
+          border-radius: var(--radius); display: flex; align-items: center;
+          justify-content: center; color: var(--text-muted);
+          font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+          font-family: var(--font-body); margin-bottom: 10px;
+        }
+
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes chatFadeIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .cx-fade-in { animation: fadeIn 0.3s ease; }
+        .cx-chat-fade-in { animation: chatFadeIn 0.25s ease; }
+
+        @media (max-width: 480px) {
+          .cx-hero-rank { font-size: 60px; }
+          .cx-hero-title { font-size: 24px; }
+          .cx-modal-title { font-size: 24px; }
+        }
       `}</style>
 
-      <View style={styles.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', gap: '10px', width: '100%', boxSizing: 'border-box' }}>
-          <Text style={[styles.logo, {flexShrink: 0}]}>CINEMA<Text style={{color: '#5e96f1'}}>X</Text></Text>
-          <TextInput style={[styles.searchBar, {flex: 1, minWidth: 0}]} placeholder="Search..." placeholderTextColor="#64748b" value={search} onChangeText={setSearch} />
-        </div>
-        
-        
-
-        <View style={styles.navRow}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.navScroll}>
-            {["Home", "Trending", "Movies", "Series"].map(l => (
-              <TouchableOpacity key={l} onPress={() => {setActiveTab(l); setSearch(''); setShowFilters(false); setGroupPage(1); setWatchTogetherVisible(false);}} style={styles.navItem}>
-                <Text style={[styles.navText, activeTab === l && !watchTogetherVisible && styles.activeNavText]}>{l}</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity onPress={() => setWatchTogetherVisible(true)} style={[styles.navItem, {flexDirection:'row', alignItems:'center', gap:4}]}>
-              <Text style={[styles.navText, watchTogetherVisible && styles.activeNavText, peerConnected && {color:'#10b981'}]}>
-                {peerConnected ? '🟢 Watch Together' : '👥 Watch Together'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.navItem}>
-              <Text style={[styles.navText, showFilters && styles.activeNavText]}>Category ▾</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
-      </View>
-      {!watchTogetherVisible && <View style={styles.adContainer}>
-  <Text style={{ color: '#334155', fontSize: 10}}>SPONSORSHIP</Text>
-      </View>}
-      {!watchTogetherVisible && showFilters && (
-        <ScrollView style={styles.filterDrawer}>
-          <Text style={styles.filterLabel}>Year Range</Text>
-          <View style={styles.dateInputRow}>
-            <TextInput style={styles.dateInput} value={yearFrom} onChangeText={handleYearFromChange} placeholder="From" keyboardType="numeric" maxLength={4} />
-            <Text style={{color:'#64748b'}}>to</Text>
-            <TextInput style={styles.dateInput} value={yearTo} onChangeText={handleYearToChange} placeholder="To" keyboardType="numeric" maxLength={4} />
-          </View>
-          <Text style={styles.filterLabel}>Month From</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-            {MONTHS.map(m => (
-              <TouchableOpacity key={`f-${m.val}`} style={[styles.chip, monthFrom === m.val && styles.activeChip]} onPress={() => {setMonthFrom(m.val); if (yearFrom === yearTo && parseInt(monthTo) < parseInt(m.val)) setMonthTo(m.val);}}>
-                <Text style={[styles.chipText, monthFrom === m.val && styles.activeChipText]}>{m.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <Text style={styles.filterLabel}>Month To</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-            {MONTHS.map(m => (
-              <TouchableOpacity key={`t-${m.val}`} style={[styles.chip, monthTo === m.val && styles.activeChip]} onPress={() => {if (!(yearFrom === yearTo && parseInt(m.val) < parseInt(monthFrom))) setMonthTo(m.val);}}>
-                <Text style={[styles.chipText, monthTo === m.val && styles.activeChipText]}>{m.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <div style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginTop:15, marginBottom: 10}}>
-             <Text style={styles.filterLabel}>Genres</Text>
-             <TextInput style={styles.genreMiniSearch} placeholder="Find genre..." placeholderTextColor="#64748b" value={genreSearch} onChangeText={setGenreSearch} />
+      <div className="cx-header">
+        <div className="cx-header-top">
+          <span className="cx-logo">CINEMA<span>X</span></span>
+          <div className="cx-search-wrap">
+            <i className="fa fa-search" />
+            <input
+              className="cx-search"
+              placeholder="Search movies, series..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-            {filteredGenres.map(g => (
-              <TouchableOpacity key={g.name} style={[styles.chip, selectedGenre === g.id && styles.activeChip]} onPress={() => setSelectedGenre(g.id)}>
-                <Text style={[styles.chipText, selectedGenre === g.id && styles.activeChipText]}>{g.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <Text style={styles.filterLabel}>Region</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-            {COUNTRIES.map(c => (
-              <TouchableOpacity key={c.code} style={[styles.chip, selectedCountry === c.code && styles.activeChip]} onPress={() => setSelectedCountry(c.code)}>
-                <Text style={[styles.chipText, selectedCountry === c.code && styles.activeChipText]}>{c.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          <View style={{height: 20}} />
-          <TouchableOpacity 
-            onPress={() => { setSelectedGenre(null); setSelectedCountry(""); setYearFrom("1990"); setYearTo(CURRENT_YEAR.toString()); setMonthFrom("01"); setMonthTo("12"); }}
-            style={{ backgroundColor: '#ef444415', borderWidth: 1, borderColor: '#ef4444', borderRadius: 20, padding: 12, alignItems: 'center', marginBottom: 20 }}
+        </div>
+        <div className="cx-nav">
+          {[
+            { label: 'Home', icon: 'fa-house' },
+            { label: 'Trending', icon: 'fa-fire' },
+            { label: 'Movies', icon: 'fa-film' },
+            { label: 'Series', icon: 'fa-tv' },
+          ].map(({ label, icon }) => (
+            <button key={label}
+              className={`cx-nav-btn ${activeTab === label && !watchTogetherVisible ? 'active' : ''}`}
+              onClick={() => { setActiveTab(label); setSearch(''); setShowFilters(false); setGroupPage(1); setWatchTogetherVisible(false); }}
+            >
+              <i className={`fa ${icon}`} />{label}
+            </button>
+          ))}
+          <button
+            className={`cx-nav-btn ${watchTogetherVisible ? 'active' : ''} ${peerConnected ? 'live' : ''}`}
+            onClick={() => setWatchTogetherVisible(true)}
           >
-            <Text style={{ color: '#ef4444', fontSize: 12, fontWeight: 'bold' }}>🔄 Reset All Filters</Text>
-          </TouchableOpacity>
-      </ScrollView>
+            <i className={`fa ${peerConnected ? 'fa-circle' : 'fa-users'}`} style={peerConnected ? { fontSize: 8 } : {}} />
+            Watch Together
+          </button>
+          <button
+            className={`cx-nav-btn ${showFilters ? 'active' : ''}`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <i className="fa fa-sliders" />
+            Filter
+            <i className={`fa fa-chevron-${showFilters ? 'up' : 'down'}`} style={{ fontSize: 10 }} />
+          </button>
+        </div>
+      </div>
+      {!watchTogetherVisible && (
+        <div style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '6px', minHeight: 36 }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: 9, letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>SPONSORSHIP</span>
+        </div>
+      )}
+      {!watchTogetherVisible && showFilters && (
+        <div className="cx-filter-drawer">
+          <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
+          <div className="cx-date-row">
+            <input className="cx-date-input" value={yearFrom} onChange={e => handleYearFromChange(e.target.value)} placeholder="From" maxLength={4} />
+            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>→</span>
+            <input className="cx-date-input" value={yearTo} onChange={e => handleYearToChange(e.target.value)} placeholder="To" maxLength={4} />
+          </div>
+
+          <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
+          <div className="cx-chip-row">
+            {MONTHS.map(m => (
+              <button key={`f-${m.val}`} className={`cx-chip ${monthFrom === m.val ? 'active' : ''}`}
+                onClick={() => { setMonthFrom(m.val); if (yearFrom === yearTo && parseInt(monthTo) < parseInt(m.val)) setMonthTo(m.val); }}>
+                {m.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
+          <div className="cx-chip-row">
+            {MONTHS.map(m => (
+              <button key={`t-${m.val}`} className={`cx-chip ${monthTo === m.val ? 'active' : ''}`}
+                onClick={() => { if (!(yearFrom === yearTo && parseInt(m.val) < parseInt(monthFrom))) setMonthTo(m.val); }}>
+                {m.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="cx-filter-row-header">
+            <div className="cx-filter-label" style={{ margin: '14px 0 8px' }}><i className="fa fa-masks-theater" />Genres</div>
+            <input className="cx-genre-search" placeholder="Find genre..." value={genreSearch} onChange={e => setGenreSearch(e.target.value)} />
+          </div>
+          <div className="cx-chip-row">
+            {filteredGenres.map(g => (
+              <button key={g.name} className={`cx-chip ${selectedGenre === g.id ? 'active' : ''}`} onClick={() => setSelectedGenre(g.id)}>
+                {g.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="cx-filter-label"><i className="fa fa-globe" />Region</div>
+          <div className="cx-chip-row">
+            {COUNTRIES.map(c => (
+              <button key={c.code} className={`cx-chip ${selectedCountry === c.code ? 'active' : ''}`} onClick={() => setSelectedCountry(c.code)}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+
+          <button className="cx-reset-btn" onClick={() => { setSelectedGenre(null); setSelectedCountry(''); setYearFrom('1990'); setYearTo(CURRENT_YEAR.toString()); setMonthFrom('01'); setMonthTo('12'); }}>
+            <i className="fa fa-rotate-left" /> Reset All Filters
+          </button>
+        </div>
       )}
 
       {!watchTogetherVisible && <ScrollView style={{ flex: 1 }}>
         {!search && activeTab === 'Home' && heroMovies.length > 0 && (
-          <View style={styles.heroContainer}>
-            <View style={styles.trendingHeaderFixed}>
-              <div className="blink-dot" style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#ff4b4b' }} />
-              <Text style={styles.trendingHeaderText}>TRENDING TODAY</Text>
-            </View>
-            <ScrollView 
-              ref={sliderRef} 
-              horizontal 
-              pagingEnabled 
-              showsHorizontalScrollIndicator={false} 
-              onScroll={handleOnScroll} 
-              scrollEventThrottle={16}
-              snapToAlignment="center"
-              decelerationRate="fast"
+          <div className="cx-hero" style={{ height: width < 480 ? 280 : 380 }}>
+            <div className="cx-hero-badge">
+              <div className="cx-hero-badge-dot" />
+              <span className="cx-hero-badge-text">TRENDING TODAY</span>
+            </div>
+            <ScrollView
+              ref={sliderRef}
+              horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+              onScroll={handleOnScroll} scrollEventThrottle={16}
+              snapToAlignment="center" decelerationRate="fast"
               contentContainerStyle={{ width: width * heroMovies.length }}
             >
               {heroMovies.map((m, i) => (
-                <View key={i} style={{ width: width, height: 350, overflow: 'hidden' }}>
-                  <Image source={{uri: m.banner}} style={styles.heroImage} />
-                  <View style={styles.heroOverlay}>
-                    <View style={styles.top10Badge}>
-                      <Text style={styles.top10Label}>TOP 10</Text>
-                    </View>
-                    <View style={styles.heroTitleRow}>
-                      <Text style={styles.rankNumber}>{i + 1}</Text>
-                      <View style={{flex: 1}}>
-                        <Text style={styles.heroTitle} numberOfLines={1}>{m.title}</Text>
-                        <Text style={styles.heroSynopsis} numberOfLines={2}>{m.synopsis}</Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity style={styles.heroPlayBtn} onPress={() => syncAndPlay(m)}>
-                      <Text style={styles.heroPlayText}>▶ PLAY NOW</Text>
-                    </TouchableOpacity>
-                  </View>
+                <View key={i} style={{ width, height: width < 480 ? 280 : 380, overflow: 'hidden' }}>
+                  <Image source={{ uri: m.banner }} style={{ width: '100%', height: '100%', opacity: 0.55, resizeMode: 'cover' }} />
+                  <div className="cx-hero-overlay">
+                    <div style={{ overflow: 'hidden' }}>
+                      <span className="cx-hero-rank">{i + 1}</span>
+                      <div style={{ display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 70px)' }}>
+                        <div className="cx-hero-title" style={{ fontSize: width < 480 ? 22 : 32 }}>{m.title}</div>
+                        <div className="cx-hero-meta">
+                          <i className="fa fa-calendar" style={{ marginRight: 4 }} />{m.releaseDate?.slice(0,4)}
+                          &nbsp;&nbsp;<i className="fa fa-star" style={{ color: 'var(--gold)', marginRight: 4 }} />{m.rating?.toFixed(1)}
+                        </div>
+                        <div className="cx-hero-synopsis" style={{ display: width < 480 ? 'none' : 'block' }}>{m.synopsis?.slice(0,120)}...</div>
+                      </div>
+                    </div>
+                    <button className="cx-hero-play-btn" onClick={() => syncAndPlay(m)}>
+                      <i className="fa fa-play" /> PLAY NOW
+                    </button>
+                  </div>
                 </View>
               ))}
             </ScrollView>
-            <View style={styles.dotContainer}>
-              {heroMovies.map((_, dotI) => (
-                <View key={dotI} style={[styles.dot, heroIndex === dotI && styles.activeDot]} />
+            <div className="cx-hero-dots">
+              {heroMovies.map((_, di) => (
+                <div key={di} className={`cx-dot ${heroIndex === di ? 'active' : ''}`} />
               ))}
-            </View>
-          </View>
+            </div>
+          </div>
         )}
 
-        <View style={styles.movieSection}>
+        <div className="cx-section">
           {loading ? (
-             <ActivityIndicator color="#5e96f1" style={{marginTop: 50}} />
+            <ActivityIndicator color="#4f8ef7" style={{ marginTop: 50 }} />
           ) : (
             <>
-              <View style={styles.movieGrid}>
+              <div className="cx-grid">
                 {movies.map((item, index) => {
                   const cardW = width < 400 ? (width - 60) / 3 : width < 600 ? (width - 70) / 3 : width < 900 ? (width - 80) / 4 : width < 1200 ? (width - 100) / 5 : (width - 120) / 6;
                   const posterH = cardW * 1.48;
                   return (
-                  <React.Fragment key={`${item.id}-${index}`}>
-                    {index > 0 && index % 6 === 0 && (
-                      <View style={[styles.movieCardAd, {width: cardW}]}>
-                         <div id={`grid-ad-${index}`} style={{width:'100%', height: posterH, backgroundColor: '#151f2e', borderRadius: 8, display:'flex', justifyContent:'center', alignItems:'center'}}>
-                           <Text style={{color:'#334155', fontSize: 10, textAlign:'center'}}>AD SLOT</Text>
-                         </div>
-                      </View>
-                    )}
-                    <TouchableOpacity style={[styles.movieCard, {width: cardW}]} onPress={() => syncAndPlay(item)}>
-                      <Image source={{ uri: item.poster }} style={[styles.posterImg, {width: cardW, height: posterH}]} />
-                      <Text style={styles.movieTitle} numberOfLines={1}>{item.title}</Text>
-                    </TouchableOpacity>
-                  </React.Fragment>
+                    <React.Fragment key={`${item.id}-${index}`}>
+                      {index > 0 && index % 6 === 0 && (
+                        <div className="cx-ad-slot" style={{ width: cardW, height: posterH }}>AD</div>
+                      )}
+                      <div className="cx-card" style={{ width: cardW }} onClick={() => syncAndPlay(item)}>
+                        <Image source={{ uri: item.poster }} style={{ width: cardW, height: posterH, borderRadius: 10 }} />
+                        <div className="cx-card-overlay">
+                          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div className="cx-card-play"><i className="fa fa-play" /></div>
+                          </div>
+                        </div>
+                        <div className="cx-rating-badge">
+                          <i className="fa fa-star" />{item.rating?.toFixed(1)}
+                        </div>
+                        <div className="cx-card-title">{item.title}</div>
+                      </div>
+                    </React.Fragment>
                   );
                 })}
-              </View>
+              </div>
 
               {movies.length > 0 && (
-                <View style={styles.paginationRow}>
-                  <TouchableOpacity onPress={() => setGroupPage(p => Math.max(1, p-1))} style={[styles.pageBtn, groupPage === 1 && {opacity: 0.5}]} disabled={groupPage === 1}>
-                    <Text style={styles.pageBtnText}>PREV</Text>
-                  </TouchableOpacity>
-                  <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
-                    <Text style={styles.pageLabel}>1 ... </Text>
-                    <TextInput style={styles.pageInput} value={pageInput} onChangeText={setPageInput} onSubmitEditing={jumpToPage} keyboardType="numeric" />
-                    <Text style={styles.pageLabel}> ... {totalPages}</Text>
+                <div className="cx-pagination">
+                  <button className="cx-page-btn" disabled={groupPage === 1} onClick={() => setGroupPage(p => Math.max(1, p - 1))}>
+                    <i className="fa fa-chevron-left" /> PREV
+                  </button>
+                  <div className="cx-page-info">
+                    <span>1 ···</span>
+                    <input className="cx-page-input" value={pageInput} onChange={e => setPageInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && jumpToPage()} />
+                    <span>··· {totalPages}</span>
                   </div>
-                  <TouchableOpacity onPress={() => setGroupPage(p => Math.min(totalPages, p + 1))} style={[styles.pageBtn, (!hasMore || groupPage >= totalPages) && {opacity: 0.5}]} disabled={!hasMore || groupPage >= totalPages}>
-                    <Text style={styles.pageBtnText}>NEXT</Text>
-                  </TouchableOpacity>
-                </View>
+                  <button className="cx-page-btn" disabled={!hasMore || groupPage >= totalPages} onClick={() => setGroupPage(p => Math.min(totalPages, p + 1))}>
+                    NEXT <i className="fa fa-chevron-right" />
+                  </button>
+                </div>
               )}
             </>
           )}
-        </View>
+        </div>
       </ScrollView>}
 
       {selectedMovie && !watchTogetherVisible && (
-        <View style={styles.modal}>
-          <View style={[styles.modalContent, loadVideo ? { width: '100%', height: '100%', borderRadius: 0 } : { maxHeight: height * 0.9 }]}>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => {setSelectedMovie(null); setLoadVideo(false); localStorage.removeItem('selectedMovie'); localStorage.removeItem('loadVideo');}}>
-              <Text style={{color:'#fff', fontWeight:'bold'}}>✕</Text>
-            </TouchableOpacity>
+        <div className="cx-modal-overlay cx-fade-in">
+          <div className="cx-modal" style={loadVideo ? { width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', borderRadius: 0 } : {}}>
+            <button className="cx-modal-close" onClick={() => { setSelectedMovie(null); setLoadVideo(false); localStorage.removeItem('selectedMovie'); localStorage.removeItem('loadVideo'); }}>
+              <i className="fa fa-xmark" />
+            </button>
             {!loadVideo ? (
-              <ScrollView style={{flex: 1}} contentContainerStyle={{paddingBottom: 20}}>
-                <Image source={{ uri: selectedMovie.banner || selectedMovie.poster }} style={styles.modalBanner} />
-                <View style={styles.detailsContainer}>
-                  <Text style={styles.modalTitle}>{selectedMovie.title}</Text>
-                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'5px'}}>
-                    <Text style={styles.releaseLabel}>Released: {selectedMovie.releaseDate}</Text>
-                    <Text style={styles.ratingText}>⭐ {selectedMovie.rating.toFixed(1)}</Text>
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+                <img src={selectedMovie.banner || selectedMovie.poster} className="cx-modal-banner" alt={selectedMovie.title} />
+                <div className="cx-modal-body">
+                  <div className="cx-modal-title">{selectedMovie.title}</div>
+                  <div className="cx-modal-meta">
+                    <span className="cx-modal-date"><i className="fa fa-calendar-days" /> {selectedMovie.releaseDate}</span>
+                    <span className="cx-modal-rating"><i className="fa fa-star" /> {selectedMovie.rating?.toFixed(1)}</span>
                   </div>
-                  <View style={styles.genreTags}>
+                  <div className="cx-genre-tags">
                     {getGenreNames(selectedMovie.genreIds).map((gName, idx) => (
-                      <View key={idx} style={styles.genreTag}><Text style={styles.genreTagText}>{gName}</Text></View>
+                      <span key={idx} className="cx-genre-tag">{gName}</span>
                     ))}
-                  </View>
-                  <Text style={styles.synopsisText}>{selectedMovie.synopsis}</Text>
-                  <View style={styles.serverDisplay}>
-                     <Text style={styles.serverText}>STREAMING: <Text style={{color:'#5e96f1'}}>BACKEND PROXY</Text></Text>
-                  </View>
-                  <TouchableOpacity style={styles.watchBtn} onPress={() => setLoadVideo(true)}>
-                    <Text style={styles.watchBtnText}>PLAY MOVIE</Text>
-                  </TouchableOpacity>
-                </View>
+                  </div>
+                  <p className="cx-synopsis">{selectedMovie.synopsis}</p>
+                  <div className="cx-server-badge">
+                    <i className="fa fa-server" style={{ color: 'var(--accent)', fontSize: 12 }} />
+                    <span className="cx-server-badge-text">Streaming via</span>
+                    <span className="cx-server-badge-val">{SERVERS[selectedServer]?.name}</span>
+                  </div>
+                  <button className="cx-watch-btn" onClick={() => setLoadVideo(true)}>
+                    <i className="fa fa-play" /> PLAY NOW
+                  </button>
+                </div>
               </ScrollView>
             ) : (
-              <View style={{flex: 1, backgroundColor: '#000'}}>
-                 {imdbLoading ? (
-                   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
-                     <ActivityIndicator color="#5e96f1" size="large" />
-                     <Text style={{ color: '#64748b', fontSize: 12, marginTop: 12 }}>Fetching source...</Text>
-                   </View>
-                 ) : SERVERS[selectedServer].needsImdb && !imdbId ? (
-                   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', padding: 20 }}>
-                     <Text style={{ color: '#ef4444', fontSize: 14, textAlign: 'center' }}>⚠️ IMDB ID not found for this title. Try another server.</Text>
-                   </View>
-                 ) : (
-                   <iframe 
-                      key={`player-${selectedMovie.tmdbId}-${selectedServer}`}
-                      src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId, 0, selectedServer, imdbId || undefined)} 
-                      style={{ width: '100%', height: '100%', border: 'none' }} 
-                      allowFullScreen 
-                      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                      sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
-                   />
-                 )}
-                 <View style={styles.customControls}>
-                    {/* Server Switcher */}
-                    <Text style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-                      🎬 Switch Server if video won't play
-                    </Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 4, marginBottom: 14 }}>
-                      {SERVERS.map((server, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => setSelectedServer(index)}
-                          style={{
-                            backgroundColor: selectedServer === index ? '#5e96f1' : '#1e293b',
-                            paddingHorizontal: 14,
-                            paddingVertical: 7,
-                            borderRadius: 20,
-                            borderWidth: 1,
-                            borderColor: selectedServer === index ? '#5e96f1' : '#334155',
-                          }}
-                        >
-                          <Text style={{ color: selectedServer === index ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: selectedServer === index ? 'bold' : 'normal' }}>
-                            {selectedServer === index ? '▶ ' : ''}{server.name}{server.needsImdb ? ' 🎬' : ''}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                    <Text style={styles.promoText}>Enjoying the show? 🍿 Invite your friends to <Text style={{color: '#5e96f1', fontWeight: 'bold'}}>CinemaX</Text> for an ad-free, uninterrupted cinematic experience!</Text>
-                    <TouchableOpacity style={[styles.copyBtn, copied && {backgroundColor: '#10b981'}]} onPress={handleCopyLink}>
-                      <Text style={styles.copyBtnText}>{copied ? (roomId ? "ID COPIED! ✅" : "COPIED! ✅") : (roomId ? "COPY ROOM ID 🔗" : "COPY INVITE LINK 🔗")}</Text>
-                    </TouchableOpacity>
-                 </View>
+              <View style={{ flex: 1, backgroundColor: '#000' }}>
+                {imdbLoading ? (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+                    <ActivityIndicator color="#4f8ef7" size="large" />
+                    <Text style={{ color: '#8a9bb5', fontSize: 12, marginTop: 12, fontFamily: 'Outfit, sans-serif' }}>Fetching source...</Text>
+                  </View>
+                ) : SERVERS[selectedServer].needsImdb && !imdbId ? (
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', padding: 20 }}>
+                    <Text style={{ color: '#ef4444', fontSize: 14, textAlign: 'center' }}>IMDB ID not found for this title. Try another server.</Text>
+                  </View>
+                ) : (
+                  <iframe
+                    key={`player-${selectedMovie.tmdbId}-${selectedServer}`}
+                    src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId, 0, selectedServer, imdbId || undefined)}
+                    style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
+                    allowFullScreen
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+                  />
+                )}
+                <div className="cx-player-bar">
+                  <div className="cx-server-label"><i className="fa fa-satellite-dish" /> Switch Server if video won't play</div>
+                  <div className="cx-server-row">
+                    {SERVERS.map((server, index) => (
+                      <button key={index} className={`cx-server-btn ${selectedServer === index ? 'active' : ''}`} onClick={() => setSelectedServer(index)}>
+                        {selectedServer === index && <i className="fa fa-circle-play" />}
+                        {server.name}{server.needsImdb ? ' ✦' : ''}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="cx-promo-row">
+                    <span className="cx-promo-text">Enjoying CinemaX? Share with friends!</span>
+                    <button className={`cx-copy-btn ${copied ? 'copied' : ''}`} onClick={handleCopyLink}>
+                      <i className={`fa ${copied ? 'fa-check' : 'fa-link'}`} />
+                      {copied ? (roomId ? 'ID Copied!' : 'Copied!') : (roomId ? 'Copy Room ID' : 'Copy Link')}
+                    </button>
+                  </div>
+                </div>
               </View>
             )}
-          </View>
-        </View>
+          </div>
+        </div>
       )}
 
       {/* ══════════════════════════════════════════════════
           WATCH TOGETHER — FULL SCREEN PAGE
       ══════════════════════════════════════════════════ */}
       {watchTogetherVisible && (
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#0b1622', zIndex: 500, flexDirection: 'column' }} onTouchStart={resetInactivityTimer}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#080e17', zIndex: 500, flexDirection: 'column' }} onTouchStart={resetInactivityTimer}>
 
           {/* ── TOP BAR ── */}
-          <View style={{ backgroundColor: '#0d1b2a', borderBottomWidth: 1, borderColor: '#1e293b', paddingTop: 12, paddingBottom: 10, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity onPress={() => { setWatchTogetherVisible(false); if (wtVideoLoaded && wtMovie) setWtPip(true); }} style={{ padding: 6, backgroundColor: '#1e293b', borderRadius: 20 }}>
-                <Text style={{ color: '#94a3b8', fontSize: 16, fontWeight: 'bold' }}>←</Text>
-              </TouchableOpacity>
-              <View>
-                <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, letterSpacing: 0.3 }}>
-                  👥 Watch Together
-                </Text>
-                <Text style={{ color: peerConnected ? '#10b981' : '#64748b', fontSize: 10, marginTop: 1 }}>
+          <div className="cx-wt-topbar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button className="cx-wt-back" onClick={() => { setWatchTogetherVisible(false); if (wtVideoLoaded && wtMovie) setWtPip(true); }}>
+                <i className="fa fa-arrow-left" />
+              </button>
+              <div>
+                <div className="cx-wt-title"><i className="fa fa-users" style={{ color: 'var(--accent)', marginRight: 6 }} />Watch Together</div>
+                <div className={`cx-wt-status-text`} style={{ color: peerConnected ? 'var(--green)' : 'var(--text-muted)' }}>
                   {peerConnected ? '● Connected & Live' : peer ? '● Ready to connect' : '● Initializing...'}
-                </Text>
-              </View>
-            </View>
+                </div>
+              </div>
+            </div>
             {peerConnected && (
-              <TouchableOpacity onPress={leaveRoom} style={{ backgroundColor: '#ef444422', borderWidth: 1, borderColor: '#ef4444', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 }}>
-                <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold' }}>Leave Room</Text>
-              </TouchableOpacity>
+              <button className="cx-leave-btn" onClick={leaveRoom}>
+                <i className="fa fa-right-from-bracket" /> Leave Room
+              </button>
             )}
-          </View>
+          </div>
 
           {/* ── STATUS BANNER ── */}
           {!!wtStatus && (
-            <View style={{ backgroundColor: peerConnected ? '#052e1c' : '#0f172a', borderBottomWidth: 1, borderColor: peerConnected ? '#10b981' : '#334155', paddingHorizontal: 16, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ color: peerConnected ? '#10b981' : '#94a3b8', fontSize: 12, flex: 1 }}>{wtStatus}</Text>
-            </View>
+            <div className="cx-status-banner" style={{
+              background: peerConnected ? 'rgba(34,197,94,0.08)' : 'var(--bg-secondary)',
+              borderColor: peerConnected ? 'rgba(34,197,94,0.25)' : 'var(--border)'
+            }}>
+              <i className={`fa ${peerConnected ? 'fa-circle-check' : 'fa-circle-info'}`} style={{ color: peerConnected ? 'var(--green)' : 'var(--text-muted)', fontSize: 12 }} />
+              <span style={{ color: peerConnected ? 'var(--green)' : 'var(--text-secondary)', fontSize: 12, flex: 1 }}>{wtStatus}</span>
+            </div>
           )}
 
           {/* ── MAIN CONTENT AREA ── */}
-          <View style={{ flex: 1, flexDirection: width > 768 ? 'row' : 'column' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: width > 768 ? 'row' : 'column', overflow: 'hidden', minHeight: 0 }}>
 
             {/* LEFT / TOP: VIDEO PANEL */}
-            <View style={{
-              flex: wtVideoMinimized ? 0 : (width > 768 ? 0.55 : 0.45),
+            <div style={{
+              flex: wtVideoMinimized ? '0 0 0px' : (width > 768 ? '0 0 55%' : '0 0 45%'),
               backgroundColor: '#000',
               minHeight: wtVideoMinimized ? 0 : (width > 768 ? '100%' : 220),
               position: 'relative',
               overflow: 'hidden',
-            }}>
+            } as any}>
               {/* Video / Placeholder */}
               {!wtMovie ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 20 }}>
-                  <Text style={{ fontSize: 48 }}>🎬</Text>
-                  <Text style={{ color: '#475569', fontSize: 14, textAlign: 'center' }}>
-                    {hostMode || !peerConnected
-                      ? 'No movie selected yet.\nPick a movie to start the session.'
-                      : 'Waiting for host to pick a movie...'}
-                  </Text>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16, padding: 24, height: '100%' }}>
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <i className="fa fa-film" style={{ color: 'var(--accent)', fontSize: 28 }} />
+                  </div>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', lineHeight: 1.5, margin: 0 }}>
+                    {hostMode || !peerConnected ? 'No movie selected.\nPick one to start the session.' : 'Waiting for host to pick a movie...'}
+                  </p>
                   {hostMode && (
-                    <TouchableOpacity
-                      onPress={() => setWtShowMoviePicker(true)}
-                      style={{ backgroundColor: '#5e96f1', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 25, marginTop: 8 }}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: 'bold' }}>🎞 Browse & Pick Movie</Text>
-                    </TouchableOpacity>
+                    <button className="cx-create-btn" style={{ padding: '12px 24px', borderRadius: 25, width: 'auto' }} onClick={() => setWtShowMoviePicker(true)}>
+                      <i className="fa fa-film" /> Browse & Pick Movie
+                    </button>
                   )}
-                </View>
+                </div>
               ) : wtVideoLoaded ? (
-                <View style={{ flex: 1, position: 'relative' }}>
+                <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
                   <style>{`
                     @keyframes fadeOutOverlay { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0;pointer-events:none} }
                     .wt-autoplay-overlay { animation: fadeOutOverlay 1s forwards; background:transparent; position:absolute; inset:0; z-index:5; cursor:pointer; }
@@ -1552,398 +2288,323 @@ const askAI = async () => {
                   <iframe
                     key={`wt-iframe-${wtMovie?.tmdbId}-${wtIframeKey}`}
                     src={SERVER_URL(wtMovie.type, wtMovie.tmdbId, Math.max(0, wtLoadedOffset), selectedServer, imdbId || undefined)}
-                    style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                    style={{ width: '100%', height: '100%', border: 'none', display: 'block', WebkitOverflowScrolling: 'touch' } as any}
                     allowFullScreen
-                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
+                    referrerPolicy="no-referrer-when-downgrade"
                     sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
                     onLoad={(e: any) => {
                       try { e.target.contentWindow?.postMessage({ type: 'play' }, '*'); } catch(_) {}
                     }}
                   />
                   <div className="wt-autoplay-overlay" onClick={() => {}} />
-                  {/* Controls overlay — Minimize only; Sync/Change are in the top room strip */}
-                  <View style={{ position: 'absolute', top: 10, right: 10, gap: 8, zIndex: 10 }}>
-                    <TouchableOpacity onPress={() => setWtVideoMinimized(true)}
-                      style={{ backgroundColor: 'rgba(0,0,0,0.75)', padding: 8, borderRadius: 20 }}>
-                      <Text style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>⬇ Min</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {/* Minimize button */}
+                  <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
+                    <button className="cx-pip-btn" onClick={() => setWtVideoMinimized(true)}>
+                      <i className="fa fa-compress" /> Min
+                    </button>
+                  </div>
 
                   {/* Host Sync Input Panel */}
                   {hostMode && wtShowSyncInput && (
-                    <View style={{ position: 'absolute', top: 10, left: 10, right: 90, zIndex: 20, backgroundColor: 'rgba(11,22,34,0.97)', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#10b981' }}>
-                      <Text style={{ color: '#10b981', fontWeight: 'bold', fontSize: 12, marginBottom: 4 }}>📡 Push Sync to Guest</Text>
+                    <div className="cx-sync-overlay">
+                      <div className="cx-sync-overlay-title"><i className="fa fa-satellite-dish" />Push Sync to Guest</div>
                       {hostDisplayTime > 0 ? (
-                        <View style={{ backgroundColor: '#052e1c', borderRadius: 8, padding: 10, marginBottom: 10 }}>
-                          <Text style={{ color: '#64748b', fontSize: 9, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>Real video time (from player)</Text>
-                          <Text style={{ color: '#10b981', fontSize: 20, fontWeight: '900' }}>
-                            {fmtHMS(hostDisplayTime)}
-                          </Text>
-                          <Text style={{ color: '#475569', fontSize: 10, marginTop: 2 }}>Guest will jump to this exact position</Text>
-                        </View>
+                        <div className="cx-sync-time-display">
+                          <div className="cx-sync-time-label">Real video time</div>
+                          <div className="cx-sync-time-val">{fmtHMS(hostDisplayTime)}</div>
+                        </div>
                       ) : (
-                        <Text style={{ color: '#64748b', fontSize: 10, marginBottom: 10 }}>Waiting for player to report time... (play the video first)</Text>
+                        <p style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 10 }}>Waiting for player... (play video first)</p>
                       )}
-                      <Text style={{ color: '#475569', fontSize: 10, marginBottom: 6 }}>Or override manually:</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                        <TextInput
-                          style={{ backgroundColor: '#1e293b', color: '#fff', borderRadius: 8, padding: 8, width: 55, textAlign: 'center', fontSize: 15, fontWeight: 'bold', borderWidth: 1, borderColor: '#334155' }}
-                          value={wtSyncMinutes} onChangeText={setWtSyncMinutes}
-                          placeholder="0" placeholderTextColor="#475569" keyboardType="numeric" maxLength={3}
-                        />
-                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>m</Text>
-                        <TextInput
-                          style={{ backgroundColor: '#1e293b', color: '#fff', borderRadius: 8, padding: 8, width: 55, textAlign: 'center', fontSize: 15, fontWeight: 'bold', borderWidth: 1, borderColor: '#334155' }}
-                          value={wtSyncSeconds} onChangeText={setWtSyncSeconds}
-                          placeholder="0" placeholderTextColor="#475569" keyboardType="numeric" maxLength={2}
-                        />
-                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>s</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <TouchableOpacity onPress={wtHostSeekSync}
-                          style={{ flex: 1, backgroundColor: '#10b981', padding: 10, borderRadius: 20, alignItems: 'center' }}>
-                          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>📡 Push to Guest</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setWtShowSyncInput(false)}
-                          style={{ backgroundColor: '#1e293b', padding: 10, borderRadius: 20, paddingHorizontal: 14 }}>
-                          <Text style={{ color: '#94a3b8', fontSize: 12 }}>✕</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
+                      <p style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 6 }}>Or override manually:</p>
+                      <div className="cx-sync-manual-row">
+                        <input className="cx-sync-manual-input" value={wtSyncMinutes} onChange={e => setWtSyncMinutes(e.target.value)} placeholder="0" maxLength={3} />
+                        <span className="cx-sync-manual-sep">m</span>
+                        <input className="cx-sync-manual-input" value={wtSyncSeconds} onChange={e => setWtSyncSeconds(e.target.value)} placeholder="0" maxLength={2} />
+                        <span className="cx-sync-manual-sep">s</span>
+                      </div>
+                      <div className="cx-sync-actions">
+                        <button className="cx-sync-push-btn" onClick={wtHostSeekSync}>
+                          <i className="fa fa-satellite-dish" /> Push to Guest
+                        </button>
+                        <button className="cx-sync-cancel-btn" onClick={() => setWtShowSyncInput(false)}>
+                          <i className="fa fa-xmark" />
+                        </button>
+                      </div>
+                    </div>
                   )}
 
                   {/* Guest drift indicator */}
                   {!hostMode && wtDriftSeconds !== null && (
-                    <View style={{ position: 'absolute', bottom: 10, left: 10, backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
-                      <Text style={{ color: '#10b981', fontSize: 10, fontWeight: 'bold' }}>
-                        🕐 Host at {fmtHMS(wtDriftSeconds)}
-                      </Text>
-                    </View>
+                    <div className="cx-drift-badge">
+                      <div className="cx-drift-text"><i className="fa fa-clock" /> Host at {fmtHMS(wtDriftSeconds)}</div>
+                    </div>
                   )}
-                </View>
+                </div>
               ) : (
                 /* Movie info card — pre-play state */
-                <View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#0b1622' }}>
-                  <Image source={{ uri: wtMovie.poster }} style={{ width: 110, height: '100%', resizeMode: 'cover' }} />
-                  <View style={{ flex: 1, padding: 16, justifyContent: 'space-between' }}>
-                    <View>
-                      <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16, marginBottom: 4 }} numberOfLines={2}>{wtMovie.title}</Text>
-                      <Text style={{ color: '#64748b', fontSize: 11, marginBottom: 8 }}>⭐ {wtMovie.rating?.toFixed(1)} · {wtMovie.releaseDate?.slice(0,4)}</Text>
-                      <Text style={{ color: '#94a3b8', fontSize: 12, lineHeight: 18 }} numberOfLines={4}>{wtMovie.synopsis}</Text>
-                    </View>
-                    {/* HOST: play + sync */}
+                <div style={{ display: 'flex', flexDirection: 'row', background: 'var(--bg-primary)', height: '100%' }}>
+                  <img src={wtMovie.poster} alt={wtMovie.title} style={{ width: 110, objectFit: 'cover', flexShrink: 0 }} />
+                  <div style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12, overflow: 'hidden' }}>
+                    <div>
+                      <div style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 15, marginBottom: 4, lineHeight: 1.2 }}>{wtMovie.title}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 11, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <i className="fa fa-star" style={{ color: 'var(--gold)' }} />{wtMovie.rating?.toFixed(1)}
+                        <span>·</span>
+                        <i className="fa fa-calendar" />{wtMovie.releaseDate?.slice(0,4)}
+                      </div>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.5, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' } as any}>{wtMovie.synopsis}</p>
+                    </div>
                     {hostMode ? (
-                      <View style={{ gap: 8 }}>
-                        <TouchableOpacity
-                          onPress={wtHostPlay}
-                          style={{ backgroundColor: '#5e96f1', padding: 14, borderRadius: 25, alignItems: 'center' }}
-                        >
-                          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>▶ Play & Sync to Friend</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setWtShowMoviePicker(true)} style={{ backgroundColor: '#1e293b', padding: 10, borderRadius: 20, alignItems: 'center' }}>
-                          <Text style={{ color: '#94a3b8', fontSize: 12 }}>🔄 Change Movie</Text>
-                        </TouchableOpacity>
-                      </View>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <button className="cx-create-btn" onClick={wtHostPlay}>
+                          <i className="fa fa-play" /> Play & Sync to Friend
+                        </button>
+                        <button className="cx-change-btn" style={{ justifyContent: 'center', padding: '10px 16px', borderRadius: 20 }} onClick={() => setWtShowMoviePicker(true)}>
+                          <i className="fa fa-rotate" /> Change Movie
+                        </button>
+                      </div>
                     ) : (
-                      /* GUEST: sync button */
-                      <View style={{ gap: 8 }}>
-                        <TouchableOpacity
-                          onPress={wtGuestSync}
-                          style={{ backgroundColor: '#10b981', padding: 14, borderRadius: 25, alignItems: 'center' }}
-                        >
-                          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>🔗 Sync & Play</Text>
-                        </TouchableOpacity>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <button className="cx-join-btn" onClick={wtGuestSync}>
+                          <i className="fa fa-link" /> Sync & Play
+                        </button>
                         {wtDriftSeconds !== null && (
-                          <Text style={{ color: '#f59e0b', fontSize: 11, textAlign: 'center', fontWeight: 'bold' }}>
-                            ⏱ Host is at ~{fmtHMS(wtDriftSeconds)}
-                          </Text>
+                          <div style={{ color: 'var(--gold)', fontSize: 11, textAlign: 'center', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                            <i className="fa fa-clock" /> Host is at ~{fmtHMS(wtDriftSeconds)}
+                          </div>
                         )}
-                        <Text style={{ color: '#475569', fontSize: 10, textAlign: 'center' }}>
+                        <p style={{ color: 'var(--text-muted)', fontSize: 10, textAlign: 'center', margin: 0 }}>
                           {guestStartTsRef.current ? 'Tap to jump to host\'s current position.' : 'Waiting for host to start playback...'}
-                        </Text>
-                      </View>
+                        </p>
+                      </div>
                     )}
-                  </View>
-                </View>
+                  </div>
+                </div>
               )}
+            </div>
 
-              {/* Minimized bar */}
-              {wtVideoMinimized && wtMovie && (
-                <View style={{ display: 'none' }} />
-              )}
-            </View>
-
-            {/* Minimized video pill — shown below top bar when minimized */}
+            {/* Minimized video pill */}
             {wtVideoMinimized && wtMovie && wtVideoLoaded && (
-              <View style={{ backgroundColor: '#151f2e', borderBottomWidth: 1, borderColor: '#1e293b', paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Image source={{ uri: wtMovie.poster }} style={{ width: 32, height: 46, borderRadius: 4 }} />
-                  <View>
-                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }} numberOfLines={1}>{wtMovie.title}</Text>
-                    <Text style={{ color: '#64748b', fontSize: 10 }}>▶ Playing</Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  onPress={() => setWtVideoMinimized(false)}
-                  style={{ backgroundColor: '#5e96f1', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: 'bold' }}>⬆ Expand</Text>
-                </TouchableOpacity>
-              </View>
+              <div className="cx-minimized-bar">
+                <div className="cx-minimized-info">
+                  <Image source={{ uri: wtMovie.poster }} style={{ width: 30, height: 44, borderRadius: 4 }} />
+                  <div>
+                    <Text style={{ color: '#f0f4ff', fontWeight: '700', fontSize: 12 }} numberOfLines={1}>{wtMovie.title}</Text>
+                    <Text style={{ color: '#4f8ef7', fontSize: 10 }}><i className="fa fa-play" /> Playing</Text>
+                  </div>
+                </div>
+                <button className="cx-minimized-expand" onClick={() => setWtVideoMinimized(false)}>
+                  <i className="fa fa-chevron-up" /> Expand
+                </button>
+              </div>
             )}
 
             {/* RIGHT / BOTTOM: SIDEBAR */}
-            <View style={{ flex: 1, backgroundColor: '#0b1622', borderLeftWidth: width > 768 ? 1 : 0, borderTopWidth: width <= 768 ? 1 : 0, borderColor: '#1e293b', flexDirection: 'column' }}>
+            <div style={{ flex: 1, background: 'var(--bg-primary)', borderLeft: width > 768 ? '1px solid var(--border)' : 'none', borderTop: width <= 768 ? '1px solid var(--border)' : 'none', display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
 
               {/* ── NOT CONNECTED: Room setup ── */}
               {!peerConnected ? (
-                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 16 }}>
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, gap: 12 }}>
 
                   {/* CREATE ROOM */}
-                  <View style={{ backgroundColor: '#151f2e', borderRadius: 14, padding: 16 }}>
-                    <Text style={{ color: '#fff', fontWeight: '900', fontSize: 15, marginBottom: 4 }}>🏠 Host a Room</Text>
-                    <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 14, lineHeight: 18 }}>Create a room and share your Room ID with a friend so they can join.</Text>
+                  <div className="cx-room-card">
+                    <div className="cx-room-card-title"><i className="fa fa-house" />Host a Room</div>
+                    <p className="cx-room-card-desc">Create a room and share your Room ID with a friend to watch together in sync.</p>
                     {!roomId ? (
-                      <TouchableOpacity
-                        onPress={createRoom}
-                        disabled={!peer}
-                        style={{ backgroundColor: '#5e96f1', padding: 16, borderRadius: 25, alignItems: 'center', opacity: peer ? 1 : 0.5 }}
-                      >
-                        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
-                          {peer ? '✨ Create Room' : '⏳ Connecting to server...'}
-                        </Text>
-                      </TouchableOpacity>
+                      <button className="cx-create-btn" disabled={!peer} onClick={createRoom}>
+                        {peer ? <><i className="fa fa-wand-magic-sparkles" /> Create Room</> : <><i className="fa fa-spinner fa-spin" /> Connecting...</>}
+                      </button>
                     ) : (
                       <>
-                        <View style={{ backgroundColor: '#0b1622', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#5e96f1', marginBottom: 12 }}>
-                          <Text style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Your Room ID</Text>
-                          <Text style={{ color: '#5e96f1', fontSize: 13, fontWeight: 'bold', letterSpacing: 0.5 }} selectable>{roomId}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', gap: 8 }}>
-                          <TouchableOpacity
-                            onPress={() => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-                            style={{ flex: 1, backgroundColor: copied ? '#10b981' : '#5e96f1', padding: 14, borderRadius: 20, alignItems: 'center' }}
-                          >
-                            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>{copied ? '✅ Copied!' : '📋 Copy Room ID'}</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={createRoom}
-                            style={{ backgroundColor: '#ef444415', paddingHorizontal: 16, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#ef4444' }}
-                          >
-                            <Text style={{ color: '#ef4444', fontSize: 12, fontWeight: 'bold' }}>Cancel</Text>
-                          </TouchableOpacity>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
-                          <div className="blink-dot" style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#f59e0b', flexShrink: 0 }} />
+                        <div className="cx-room-id-box">
+                          <div className="cx-room-id-label">Your Room ID</div>
+                          <div className="cx-room-id-val">{roomId}</div>
+                        </div>
+                        <div className="cx-room-actions">
+                          <button className={`cx-copy-room-btn ${copied ? 'copied' : ''}`} onClick={() => { navigator.clipboard.writeText(roomId); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>
+                            <i className={`fa ${copied ? 'fa-check' : 'fa-copy'}`} />{copied ? 'Copied!' : 'Copy Room ID'}
+                          </button>
+                          <button className="cx-cancel-btn" onClick={createRoom}>Cancel</button>
+                        </div>
+                        <div className="cx-waiting-row">
+                          <div className="cx-waiting-dot" />
                           <Text style={{ color: '#f59e0b', fontSize: 11 }}>Waiting for friend to join...</Text>
-                        </View>
+                        </div>
                       </>
                     )}
-                  </View>
+                  </div>
 
-                  {/* DIVIDER */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ flex: 1, height: 1, backgroundColor: '#1e293b' }} />
-                    <Text style={{ color: '#475569', fontSize: 12 }}>OR</Text>
-                    <View style={{ flex: 1, height: 1, backgroundColor: '#1e293b' }} />
-                  </View>
+                  <div className="cx-divider">
+                    <div className="cx-divider-line" /><span className="cx-divider-text">OR</span><div className="cx-divider-line" />
+                  </div>
 
                   {/* JOIN ROOM */}
-                  <View style={{ backgroundColor: '#151f2e', borderRadius: 14, padding: 16 }}>
-                    <Text style={{ color: '#fff', fontWeight: '900', fontSize: 15, marginBottom: 4 }}>🔗 Join a Room</Text>
-                    <Text style={{ color: '#64748b', fontSize: 12, marginBottom: 14, lineHeight: 18 }}>Enter your friend's Room ID to sync and watch together.</Text>
-                    <TextInput
-                      style={{ backgroundColor: '#0b1622', color: '#fff', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 13, borderWidth: 1, borderColor: '#334155', marginBottom: 12 }}
+                  <div className="cx-room-card">
+                    <div className="cx-room-card-title"><i className="fa fa-link" />Join a Room</div>
+                    <p className="cx-room-card-desc">Enter your friend's Room ID to sync and watch together.</p>
+                    <input
+                      className="cx-join-input"
                       value={joinCode}
-                      onChangeText={setJoinCode}
+                      onChange={e => setJoinCode(e.target.value)}
                       placeholder="Paste Room ID here..."
-                      placeholderTextColor="#475569"
                       autoCapitalize="none"
-                      autoCorrect={false}
+                      autoCorrect="off"
                     />
-                    <TouchableOpacity
-                      onPress={joinRoom}
-                      disabled={!peer || !joinCode.trim()}
-                      style={{ backgroundColor: '#10b981', padding: 16, borderRadius: 25, alignItems: 'center', opacity: (peer && joinCode.trim()) ? 1 : 0.4 }}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>🚀 Join Room</Text>
-                    </TouchableOpacity>
-                  </View>
+                    <button className="cx-join-btn" disabled={!peer || !joinCode.trim()} onClick={joinRoom}>
+                      <i className="fa fa-rocket" /> Join Room
+                    </button>
+                  </div>
 
                   {/* HOW IT WORKS */}
-                  <View style={{ backgroundColor: '#151f2e', borderRadius: 14, padding: 16 }}>
-                    <Text style={{ color: '#5e96f1', fontWeight: 'bold', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>ℹ How it works</Text>
+                  <div className="cx-howto-card">
+                    <div className="cx-howto-title"><i className="fa fa-circle-info" />How it works</div>
                     {[
-                      ['1️⃣', 'One person taps Create Room and shares their Room ID.'],
-                      ['2️⃣', 'The other person pastes it and taps Join Room.'],
-                      ['3️⃣', 'The host picks a movie and taps Play & Sync.'],
-                      ['4️⃣', 'Guest taps Sync & Watch — you\'re watching together!'],
-                    ].map(([emoji, text], i) => (
-                      <View key={i} style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
-                        <Text style={{ fontSize: 16 }}>{emoji}</Text>
-                        <Text style={{ color: '#94a3b8', fontSize: 12, lineHeight: 18, flex: 1 }}>{text}</Text>
-                      </View>
+                      ['1', 'One person taps Create Room and shares their Room ID.'],
+                      ['2', 'The other person pastes it and taps Join Room.'],
+                      ['3', 'The host picks a movie and taps Play & Sync.'],
+                      ['4', 'Guest taps Sync & Watch — you\'re watching in sync!'],
+                    ].map(([num, text]) => (
+                      <div key={num} className="cx-howto-step">
+                        <div className="cx-howto-num">{num}</div>
+                        <p className="cx-howto-text">{text}</p>
+                      </div>
                     ))}
-                  </View>
+                  </div>
                 </ScrollView>
 
               ) : (
                 /* ── CONNECTED: chat + controls ── */
                 <View style={{ flex: 1, flexDirection: 'column' }}>
-
                   {/* Room info strip */}
-                  <View style={{ backgroundColor: '#052e1c', padding: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View>
-                      <Text style={{ color: '#10b981', fontWeight: 'bold', fontSize: 12 }}>
-                        {hostMode ? '👑 You are the Host' : '🎟 You are a Guest'}
-                      </Text>
-                      <Text style={{ color: '#059669', fontSize: 10 }}>
+                  <div className="cx-connected-strip">
+                    <div>
+                      <div className="cx-connected-role">
+                        <i className={`fa ${hostMode ? 'fa-crown' : 'fa-ticket'}`} />
+                        {hostMode ? 'You are the Host' : 'You are a Guest'}
+                      </div>
+                      <div className="cx-connected-sub">
                         {hostMode
-                          ? (hostDisplayTime > 0
-                              ? `🎬 ${fmtHMS(hostDisplayTime)} · Room: ${roomId.slice(0,8)}...`
-                              : `Room ID: ${roomId.slice(0,8)}...`)
-                          : `Host ID: ${joinCode.slice(0,8)}...`}
-                      </Text>
-                    </View>
+                          ? (hostDisplayTime > 0 ? `${fmtHMS(hostDisplayTime)} · Room: ${roomId.slice(0,8)}...` : `Room: ${roomId.slice(0,8)}...`)
+                          : `Host: ${joinCode.slice(0,8)}...`}
+                      </div>
+                    </div>
                     {hostMode && (
-                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
                         {wtVideoLoaded && (
-                          <TouchableOpacity
-                            onPress={() => setWtShowSyncInput(s => !s)}
-                            style={{ backgroundColor: '#10b98122', borderWidth: 1, borderColor: '#10b981', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 15 }}
-                          >
-                            <Text style={{ color: '#10b981', fontWeight: 'bold', fontSize: 10 }}>📡 Sync</Text>
-                          </TouchableOpacity>
+                          <button className="cx-sync-btn" onClick={() => setWtShowSyncInput(s => !s)}>
+                            <i className="fa fa-satellite-dish" /> Sync
+                          </button>
                         )}
-                        <TouchableOpacity
-                          onPress={() => setWtShowMoviePicker(true)}
-                          style={{ backgroundColor: '#5e96f1', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}
-                        >
-                          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 11 }}>{wtMovie ? '🔄 Change Movie' : '🎞 Pick Movie'}</Text>
-                        </TouchableOpacity>
-                      </View>
+                        <button className="cx-change-btn" onClick={() => setWtShowMoviePicker(true)}>
+                          <i className="fa fa-film" /> Change
+                        </button>
+                      </div>
                     )}
-                    {!hostMode && wtVideoLoaded && (
-                      <TouchableOpacity
-                        onPress={wtGuestSync}
-                        style={{ backgroundColor: '#10b98122', borderWidth: 1, borderColor: '#10b981', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 15 }}
-                      >
-                        <Text style={{ color: '#10b981', fontWeight: 'bold', fontSize: 10 }}>🔗 Resync</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  </div>
 
                   {/* Chat area */}
                   <ScrollView
                     ref={wtChatScrollRef}
-                    style={{ flex: 1, backgroundColor: '#0b1622' }}
-                    contentContainerStyle={{ padding: 16, paddingBottom: 8 }}
+                    style={{ flex: 1, backgroundColor: '#080e17' }}
+                    contentContainerStyle={{ padding: 12, paddingBottom: 8 }}
                     onContentSizeChange={() => wtChatScrollRef.current?.scrollToEnd({ animated: true })}
                   >
                     {wtChatMessages.length === 0 ? (
-                      <View style={{ alignItems: 'center', marginTop: 40, gap: 8 }}>
-                        <Text style={{ fontSize: 32 }}>💬</Text>
-                        <Text style={{ color: '#475569', fontSize: 13, textAlign: 'center' }}>No messages yet.{'\n'}Say hi to your watch party!</Text>
-                      </View>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginTop: 40, gap: 10 }}>
+                        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <i className="fa fa-comments" style={{ color: 'var(--text-muted)', fontSize: 20 }} />
+                        </div>
+                        <p style={{ color: 'var(--text-muted)', fontSize: 13, textAlign: 'center', margin: 0, lineHeight: 1.5 }}>No messages yet.{'\n'}Say hi to your watch party!</p>
+                      </div>
                     ) : wtChatMessages.map((msg, i) => (
-                      <View key={i} style={{ marginBottom: 10, alignItems: msg.from === 'me' ? 'flex-end' : 'flex-start' }}>
-                        <Text style={{ color: '#475569', fontSize: 9, fontWeight: 'bold', marginBottom: 3, textTransform: 'uppercase', flexWrap: 'wrap' }}>
-                          {msg.from === 'me' ? 'You' : 'Friend'} · {msg.time}
-                        </Text>
-                        <View style={{ backgroundColor: msg.from === 'me' ? '#5e96f1' : '#1e293b', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, maxWidth: '80%', borderBottomRightRadius: msg.from === 'me' ? 4 : 18, borderBottomLeftRadius: msg.from === 'me' ? 18 : 4 }}>
-                          <Text style={{ color: '#fff', fontSize: 13, lineHeight: 18 }}>{msg.text}</Text>
-                        </View>
-                      </View>
+                      <div key={i} className={`cx-chat-msg ${msg.from === 'me' ? 'me' : 'friend'}`}>
+                        <span className="cx-chat-time">{msg.from === 'me' ? 'You' : 'Friend'} · {msg.time}</span>
+                        <div className={`cx-chat-bubble ${msg.from === 'me' ? 'me' : 'friend'}`}>{msg.text}</div>
+                      </div>
                     ))}
                   </ScrollView>
 
                   {/* Chat input */}
-                  <View style={{ backgroundColor: '#151f2e', padding: 12, flexDirection: 'row', gap: 10, alignItems: 'center', borderTopWidth: 1, borderColor: '#1e293b' }}>
-                    <TextInput
-                      style={{ flex: 1, backgroundColor: '#0b1622', color: '#fff', borderRadius: 25, paddingHorizontal: 16, paddingVertical: 10, fontSize: 13, borderWidth: 1, borderColor: '#334155' }}
+                  <div className="cx-chat-input-row">
+                    <input
+                      className="cx-chat-input"
                       value={wtChatInput}
-                      onChangeText={setWtChatInput}
-                      placeholder="Say something to your friend..."
-                      placeholderTextColor="#475569"
-                      onSubmitEditing={sendWtChat}
-                      returnKeyType="send"
+                      onChange={e => setWtChatInput(e.target.value)}
+                      placeholder="Say something..."
+                      onKeyDown={e => e.key === 'Enter' && sendWtChat()}
                     />
-                    <TouchableOpacity
-                      onPress={sendWtChat}
-                      style={{ backgroundColor: '#5e96f1', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 25 }}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>Send</Text>
-                    </TouchableOpacity>
-                  </View>
+                    <button className="cx-send-btn" onClick={sendWtChat}>
+                      <i className="fa fa-paper-plane" />
+                    </button>
+                  </div>
                 </View>
               )}
-            </View>
-          </View>
+            </div>
+          </div>
 
           {/* ── MOVIE PICKER OVERLAY (Host Only) ── */}
           {wtShowMoviePicker && (
-            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#0b1622', zIndex: 100, flexDirection: 'column' }}>
-              {/* Header */}
-              <View style={{ backgroundColor: '#0d1b2a', padding: 16, borderBottomWidth: 1, borderColor: '#1e293b' }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <Text style={{ color: '#fff', fontWeight: '900', fontSize: 16 }}>🎞 Pick a Movie</Text>
-                  <TouchableOpacity onPress={() => setWtShowMoviePicker(false)}>
-                    <Text style={{ color: '#94a3b8', fontSize: 20, fontWeight: 'bold' }}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-                {/* Search bar */}
-                <TextInput
-                  style={{ backgroundColor: '#1e293b', color: '#fff', borderRadius: 25, paddingHorizontal: 16, paddingVertical: 10, fontSize: 13, borderWidth: 1, borderColor: '#334155', marginBottom: 10 }}
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#080e17', zIndex: 100, flexDirection: 'column' }}>
+              <div className="cx-picker-header">
+                <div className="cx-picker-top">
+                  <div className="cx-picker-title"><i className="fa fa-film" />Pick a Movie</div>
+                  <button className="cx-picker-close" onClick={() => setWtShowMoviePicker(false)}>
+                    <i className="fa fa-xmark" />
+                  </button>
+                </div>
+                <input
+                  className="cx-picker-search"
                   value={wtPickerSearch}
-                  onChangeText={t => { setWtPickerSearch(t); setWtPickerPage(1); }}
-                  placeholder="🔍  Search movies & series..."
-                  placeholderTextColor="#475569"
+                  onChange={e => { setWtPickerSearch(e.target.value); setWtPickerPage(1); }}
+                  placeholder="Search movies & series..."
                 />
-                {/* Type toggle */}
-                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                <div className="cx-type-toggle">
                   {(['movie', 'tv'] as const).map(t => (
-                    <TouchableOpacity key={t} onPress={() => { setWtPickerType(t); setWtPickerPage(1); }}
-                      style={{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: wtPickerType === t ? '#5e96f1' : '#1e293b', borderWidth: 1, borderColor: wtPickerType === t ? '#5e96f1' : '#334155' }}>
-                      <Text style={{ color: wtPickerType === t ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 'bold' }}>{t === 'movie' ? '🎬 Movies' : '📺 Series'}</Text>
-                    </TouchableOpacity>
+                    <button key={t} className={`cx-type-btn ${wtPickerType === t ? 'active' : ''}`}
+                      onClick={() => { setWtPickerType(t); setWtPickerPage(1); }}>
+                      <i className={`fa ${t === 'movie' ? 'fa-film' : 'fa-tv'}`} />
+                      {t === 'movie' ? 'Movies' : 'Series'}
+                    </button>
                   ))}
-                </View>
-                {/* Genre filter */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                </div>
+                <div className="cx-chip-row">
                   {GENRES.slice(0, 10).map(g => (
-                    <TouchableOpacity key={g.name} onPress={() => { setWtPickerGenre(g.id); setWtPickerPage(1); }}
-                      style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, marginRight: 8, backgroundColor: wtPickerGenre === g.id ? '#5e96f122' : '#1e293b', borderWidth: 1, borderColor: wtPickerGenre === g.id ? '#5e96f1' : '#334155' }}>
-                      <Text style={{ color: wtPickerGenre === g.id ? '#5e96f1' : '#94a3b8', fontSize: 11 }}>{g.name}</Text>
-                    </TouchableOpacity>
+                    <button key={g.name} className={`cx-chip ${wtPickerGenre === g.id ? 'active' : ''}`}
+                      onClick={() => { setWtPickerGenre(g.id); setWtPickerPage(1); }}>
+                      {g.name}
+                    </button>
                   ))}
-                </ScrollView>
-              </View>
-
-              {/* Movie grid */}
+                </div>
+              </div>
               <ScrollView
                 contentContainerStyle={{ padding: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' } as any}
                 onScroll={({ nativeEvent }) => {
                   const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-                  if (layoutMeasurement.height + contentOffset.y >= contentSize.height - 200 && !wtPickerLoading && wtPickerHasMore) {
-                    fetchWtPickerMovies(false);
-                  }
+                  if (layoutMeasurement.height + contentOffset.y >= contentSize.height - 200 && !wtPickerLoading && wtPickerHasMore) fetchWtPickerMovies(false);
                 }}
                 scrollEventThrottle={400}
               >
                 {wtPickerMovies.map((item, idx) => {
                   const cardW = width < 400 ? (width - 60) / 3 : width < 600 ? (width - 70) / 3 : 105;
                   return (
-                    <TouchableOpacity key={idx} onPress={() => wtPickMovie(item)} style={{ width: cardW }}>
-                      <Image source={{ uri: item.poster }} style={{ width: cardW, height: cardW * 1.48, borderRadius: 8, borderWidth: wtMovie?.tmdbId === item.tmdbId ? 2 : 0, borderColor: '#5e96f1' }} />
-                      <Text style={{ color: '#cbd5e1', fontSize: 10, textAlign: 'center', marginTop: 4 }} numberOfLines={2}>{item.title}</Text>
-                    </TouchableOpacity>
+                    <div key={idx} className="cx-card" style={{ width: cardW }} onClick={() => wtPickMovie(item)}>
+                      <Image source={{ uri: item.poster }} style={{ width: cardW, height: cardW * 1.48, borderRadius: 10, borderWidth: wtMovie?.tmdbId === item.tmdbId ? 2 : 0, borderColor: '#4f8ef7' } as any} />
+                      <div className="cx-card-overlay">
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                          <div className="cx-card-play"><i className="fa fa-play" /></div>
+                        </div>
+                      </div>
+                      <div className="cx-card-title">{item.title}</div>
+                    </div>
                   );
                 })}
-                {wtPickerLoading && <ActivityIndicator color="#5e96f1" style={{ marginVertical: 20, width: '100%' as any }} />}
+                {wtPickerLoading && <ActivityIndicator color="#4f8ef7" style={{ marginVertical: 20, width: '100%' as any }} />}
                 {!wtPickerLoading && wtPickerHasMore && wtPickerMovies.length > 0 && (
-                  <TouchableOpacity onPress={() => fetchWtPickerMovies(false)} style={{ backgroundColor: '#1e293b', padding: 12, borderRadius: 20, marginVertical: 10, paddingHorizontal: 24 }}>
-                    <Text style={{ color: '#5e96f1', fontWeight: 'bold' }}>Load More</Text>
-                  </TouchableOpacity>
+                  <button onClick={() => fetchWtPickerMovies(false)} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--accent)', padding: '10px 24px', borderRadius: 20, fontFamily: 'var(--font-body)', fontWeight: 700, cursor: 'pointer', margin: '10px auto' }}>
+                    Load More
+                  </button>
                 )}
               </ScrollView>
             </View>
@@ -1952,308 +2613,123 @@ const askAI = async () => {
         </View>
       )}
 
-      {/* ══ WATCH TOGETHER PiP — plays in corner when user goes back to main menu ══ */}
+      {/* ══ WATCH TOGETHER PiP ══ */}
       {wtPip && wtMovie && wtVideoLoaded && !watchTogetherVisible && (
-        <View style={{
-          position: 'absolute', bottom: 90, right: 16, width: 200, height: 120,
-          borderRadius: 12, overflow: 'hidden', zIndex: 800,
-          borderWidth: 2, borderColor: '#5e96f1',
-          shadowColor: '#000', shadowOpacity: 0.6, shadowRadius: 10,
-        }}>
+        <div className="cx-pip">
           <iframe
             key={`pip-${wtMovie.tmdbId}`}
             src={SERVER_URL(wtMovie.type, wtMovie.tmdbId)}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            allow="autoplay; fullscreen"
+            style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
+            referrerPolicy="no-referrer-when-downgrade"
             sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
           />
-          {/* PiP controls */}
-          <View style={{ position: 'absolute', top: 4, right: 4, flexDirection: 'row', gap: 4 }}>
-            <TouchableOpacity
-              onPress={() => { setWatchTogetherVisible(true); setWtPip(false); }}
-              style={{ backgroundColor: 'rgba(94,150,241,0.9)', padding: 4, borderRadius: 10 }}
-            >
-              <Text style={{ color: '#fff', fontSize: 9, fontWeight: 'bold' }}>⬆ Expand</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => { setWtPip(false); setWtVideoLoaded(false); }}
-              style={{ backgroundColor: 'rgba(0,0,0,0.8)', padding: 4, borderRadius: 10 }}
-            >
-              <Text style={{ color: '#fff', fontSize: 9, fontWeight: 'bold' }}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          {/* Room badge */}
-          <View style={{ position: 'absolute', bottom: 4, left: 4, backgroundColor: 'rgba(16,185,129,0.85)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 }}>
-            <Text style={{ color: '#fff', fontSize: 8, fontWeight: 'bold' }}>👥 LIVE</Text>
-          </View>
-        </View>
+          <div className="cx-pip-controls">
+            <button className="cx-pip-btn expand" onClick={() => { setWatchTogetherVisible(true); setWtPip(false); }}>
+              <i className="fa fa-expand" /> Expand
+            </button>
+            <button className="cx-pip-btn" onClick={() => { setWtPip(false); setWtVideoLoaded(false); }}>
+              <i className="fa fa-xmark" />
+            </button>
+          </div>
+          <div className="cx-pip-live"><i className="fa fa-circle" style={{ fontSize: 6 }} /> LIVE</div>
+        </div>
       )}
 
-      {/* ══ AI CHATBOT — 3 states: peek edge / full fab / full screen ══ */}
+      {/* ══ AI CHATBOT ══ */}
       <style>{`
         @keyframes slideInRight { from { transform: translateX(52px); } to { transform: translateX(0); } }
         @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(52px); } }
-        .ai-peek { animation: none; }
-        @keyframes chatFadeIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
       `}</style>
 
-      {/* PEEK state — just a sliver visible on the right edge */}
       {chatMode === 'hidden' && (
-        <TouchableOpacity
-          onPress={handleFabClick}
-          activeOpacity={0.9}
-          style={{
-            position: 'absolute', right: -44, bottom: 120, zIndex: 998,
-            width: 65, height: 65, borderRadius: 32.5,
-            backgroundColor: '#5e96f1',
-            justifyContent: 'center', alignItems: 'center',
-            borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)',
-            shadowColor: '#5e96f1', shadowOpacity: 0.5, shadowRadius: 10,
-          }}
-        >
-          <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png' }} style={{ width: 30, height: 30, resizeMode: 'contain' }} />
-          {/* Green dot */}
-          <View style={{ position: 'absolute', top: 6, right: 6, width: 10, height: 10, borderRadius: 5, backgroundColor: '#10b981', borderWidth: 1.5, borderColor: '#5e96f1' }} />
-        </TouchableOpacity>
+        <div className="cx-ai-peek" onClick={handleFabClick}>
+          <i className="fa fa-robot" />
+        </div>
       )}
 
-      {/* FAB state — full button visible, click opens chat */}
       {chatMode === 'fab' && (
-        <TouchableOpacity
-          onPress={handleFabClick}
-          activeOpacity={0.8}
-          style={{
-            position: 'absolute', right: 20, bottom: 120, zIndex: 998,
-            width: 65, height: 65, borderRadius: 32.5,
-            backgroundColor: '#5e96f1',
-            justifyContent: 'center', alignItems: 'center',
-            borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)',
-            shadowColor: '#5e96f1', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.6, shadowRadius: 12,
-            elevation: 12,
-          }}
-        >
-          <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png' }} style={{ width: 35, height: 35, resizeMode: 'contain' }} />
-          <View style={{ position: 'absolute', bottom: 8, right: 8, width: 10, height: 10, borderRadius: 5, backgroundColor: '#10b981', borderWidth: 1.5, borderColor: '#5e96f1' }} />
-        </TouchableOpacity>
+        <div className="cx-ai-fab" onClick={handleFabClick}>
+          <i className="fa fa-robot" />
+          <div className="cx-ai-online-dot" />
+        </div>
       )}
 
-      {/* OPEN state — full screen chat */}
       {chatMode === 'open' && (
-        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#0b1622', zIndex: 1000, flexDirection: 'column' }}>
-          {/* Chat Header */}
-          <View style={{ backgroundColor: '#0d1b2a', borderBottomWidth: 1, borderColor: '#1e293b', paddingTop: 14, paddingBottom: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <TouchableOpacity
-                onPress={closeChatToFab}
-                style={{ padding: 6, backgroundColor: '#1e293b', borderRadius: 20 }}
-              >
-                <Text style={{ color: '#94a3b8', fontSize: 16, fontWeight: 'bold' }}>←</Text>
-              </TouchableOpacity>
-              <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png' }} style={{ width: 34, height: 34 }} />
-              <View>
-                <Text style={{ color: '#5e96f1', fontWeight: '900', fontSize: 17, letterSpacing: 0.3 }}>CinemaX <Text style={{ color: '#fff' }}>AI</Text></Text>
-                <Text style={{ color: '#10b981', fontSize: 10, marginTop: 1 }}>● Online · Ready to help</Text>
-              </View>
-            </View>
-            <TouchableOpacity onPress={clearChat}>
-              <Text style={{ color: '#ef4444', fontSize: 11, fontWeight: 'bold' }}>CLEAR</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#080e17', zIndex: 1000, flexDirection: 'column' }}>
+          <div className="cx-ai-header">
+            <div className="cx-ai-header-left">
+              <button className="cx-wt-back" onClick={closeChatToFab}>
+                <i className="fa fa-arrow-left" />
+              </button>
+              <div className="cx-ai-icon"><i className="fa fa-robot" /></div>
+              <div>
+                <div className="cx-ai-name">CinemaX <span>AI</span></div>
+                <div className="cx-ai-online"><i className="fa fa-circle" style={{ fontSize: 7 }} />Online · Ready to help</div>
+              </div>
+            </div>
+            <button className="cx-ai-clear" onClick={clearChat}>CLEAR</button>
+          </div>
 
-          {/* Messages */}
           <ScrollView
             ref={scrollViewRef}
-            style={{ flex: 1, backgroundColor: '#0b1622' }}
+            style={{ flex: 1, backgroundColor: '#080e17' }}
             contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
             onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
           >
             {messages.map((msg, i) => (
-              <View key={i} style={[styles.msgWrapper, msg.role === 'user' ? { alignItems: 'flex-end' } : { alignItems: 'flex-start' }]}>
-                <View style={[styles.msgBubble, msg.role === 'user' ? styles.userMsg : styles.botMsg]}>
+              <div key={i} className={`cx-ai-msg ${msg.role === 'user' ? 'user' : 'bot'}`}>
+                <div className={`cx-ai-bubble ${msg.role === 'user' ? 'user' : 'bot'}`}>
                   {msg.role === 'user' ? (
-                    <Text style={styles.msgText}>{msg.content}</Text>
+                    <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{msg.content}</Text>
                   ) : (
                     <Markdown style={markdownStyles}>{msg.content}</Markdown>
                   )}
-                  <Text style={styles.msgTime}>{msg.timestamp || 'Just now'}</Text>
-                </View>
-                <Text style={styles.msgTime}>{msg.role === 'user' ? 'You' : 'CinemaX AI'}</Text>
-              </View>
+                </div>
+                <div className="cx-ai-time">{msg.role === 'user' ? 'You' : 'CinemaX AI'} · {msg.timestamp || 'Just now'}</div>
+              </div>
             ))}
             {isTyping && (
-              <View style={styles.typingContainer}>
-                <ActivityIndicator size="small" color="#5e96f1" />
-                <Text style={styles.typingText}>CinemaX is thinking...</Text>
-              </View>
+              <div className="cx-ai-msg bot">
+                <div className="cx-ai-bubble bot" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <ActivityIndicator size="small" color="#4f8ef7" />
+                  <Text style={{ color: '#8a9bb5', fontSize: 12 }}>CinemaX is thinking...</Text>
+                </div>
+              </div>
             )}
           </ScrollView>
 
-          {/* Quick Replies */}
-          <View style={styles.quickReplyContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickReplyScroll}>
-              {["🔥 Trending", "🍿 Horror", "🎬 Top 10", "🎭 Drama", "🌏 K-Drama", "🎌 Anime"].map((suggestion, index) => (
-                <TouchableOpacity key={index} style={styles.quickReplyChip} onPress={() => setChatInput(suggestion)}>
-                  <Text style={styles.quickReplyText}>{suggestion}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+          <div className="cx-quick-row">
+            {['🔥 Trending', '🍿 Horror', '🎬 Top 10', '🎭 Drama', '🌏 K-Drama', '🎌 Anime'].map((s, i) => (
+              <button key={i} className="cx-quick-chip" onClick={() => setChatInput(s)}>{s}</button>
+            ))}
+          </div>
 
-          {/* Input */}
-          <View style={styles.chatInputRow}>
-            <TextInput
-              style={styles.chatInput}
+          <div className="cx-ai-input-row">
+            <input
+              className="cx-ai-input"
               value={chatInput}
-              onChangeText={setChatInput}
+              onChange={e => setChatInput(e.target.value)}
               placeholder="Ask for a movie recommendation..."
-              placeholderTextColor="#64748b"
-              onSubmitEditing={askAI}
-              returnKeyType="send"
+              onKeyDown={e => e.key === 'Enter' && askAI()}
             />
-            <TouchableOpacity onPress={askAI} style={styles.sendBtn}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>SEND</Text>
-            </TouchableOpacity>
-          </View>
+            <button className="cx-ai-send" onClick={askAI}>
+              <i className="fa fa-paper-plane" />
+            </button>
+          </div>
         </View>
       )}
-    </View>
+    </div>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1622', overflow: 'hidden', maxWidth: '100vw' as any },
-  header: { backgroundColor: '#151f2e', borderBottomWidth: 1, borderColor: '#1e293b' },
-  logo: { color: '#fff', fontSize: 20, fontWeight: '900' },
-  searchBar: { flex: 1, backgroundColor: '#0b1622', color: '#fff', paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, fontSize: 13, border: '1px solid #1e293b', minWidth: 0 },
-  navRow: { paddingBottom: 10 },
-  navScroll: { paddingHorizontal: 15 },
-  navItem: { marginRight: 25 },
-  navText: { color: '#cbd5e1', fontSize: 14, fontWeight: '600' },
-  activeNavText: { color: '#5e96f1' },
-  adContainer: { backgroundColor: '#151f2e', width: '100%' as any, maxWidth: 320, height: 70, alignSelf: 'center', marginVertical: 10, justifyContent: 'center', alignItems: 'center' },
-  adLabel: { color: '#475569', fontSize: 9, textAlign: 'center', marginBottom: 2 },
-  movieCardAd: { width: 105, height: 180, marginBottom: 10, backgroundColor: '#151f2e', borderRadius: 8, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
-  stickyAd: { position: 'absolute', bottom: 0, width: '100%', height: 60, backgroundColor: 'rgba(11, 22, 34, 0.95)', justifyContent: 'center', alignItems: 'center', zIndex: 100 },
-  filterDrawer: { backgroundColor: '#1a2436', paddingHorizontal: 15, borderBottomWidth: 1, borderColor: '#1e293b', maxHeight: 400 },
-  filterLabel: { color: '#64748b', fontSize: 10, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8, marginTop: 15 },
-  filterRow: { marginBottom: 5 },
-  dateInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 5 },
-  dateInput: { backgroundColor: '#0b1622', color: '#fff', padding: 10, borderRadius: 8, width: 100, textAlign: 'center', border: '1px solid #334155' },
-  genreMiniSearch: { backgroundColor: '#0b1622', color: '#fff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 15, fontSize: 11, width: 120, border: '1px solid #334155' },
-  chip: { backgroundColor: '#0b1622', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, marginRight: 8, border: '1px solid #334155' },
-  activeChip: { borderColor: '#5e96f1', backgroundColor: '#5e96f122' },
-  chipText: { color: '#cbd5e1', fontSize: 12 },
-  activeChipText: { color: '#5e96f1', fontWeight: 'bold' },
-  trendingHeaderFixed: { position: 'absolute', top: 15, left: 15, zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(15, 23, 42, 0.6)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 },
-  trendingHeaderText: { color: '#fff', fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
-  heroContainer: { height: 350, backgroundColor: '#000', position: 'relative', width: '100%', overflow: 'hidden' },
-  heroImage: { width: '100%', height: 350, opacity: 0.6, resizeMode: 'cover' },
-  heroOverlay: { position: 'absolute', bottom: 45, left: 20, right: 20 },
-  top10Badge: { backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 3, alignSelf: 'flex-start', border: '1px solid #fff', marginBottom: 5 },
-  top10Label: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
-  heroTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  rankNumber: { color: 'rgba(255,255,255,0.4)', fontSize: 80, fontWeight: '900', lineHeight: 80, marginTop: -10 },
-  heroTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
-  heroSynopsis: { color: '#94a3b8', fontSize: 12, marginVertical: 10 },
-  heroPlayBtn: { backgroundColor: '#5e96f1', padding: 10, borderRadius: 5, alignSelf: 'flex-start' },
-  heroPlayText: { color: '#fff', fontWeight: 'bold' },
-  dotContainer: { position: 'absolute', bottom: 15, width: '100%', flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.3)' },
-  activeDot: { backgroundColor: '#5e96f1', width: 20 },
-  movieSection: { padding: 10, minHeight: 400, width: '100%' as any },
-  movieGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
-  movieCard: { marginBottom: 10 },
-  movieCardAd: { marginBottom: 10, opacity: 0.8 },
-  posterImg: { borderRadius: 8 },
-  movieTitle: { color: '#cbd5e1', fontSize: 11, textAlign: 'center', marginTop: 6 },
-  paginationRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginVertical: 40 },
-  pageLabel: { color: '#64748b', fontSize: 12 },
-  pageInput: { backgroundColor: '#1e293b', color: '#fff', padding: 5, width: 45, textAlign: 'center', borderRadius: 5, border: '1px solid #334155' },
-  pageBtn: { backgroundColor: '#5e96f1', paddingHorizontal: 15, paddingVertical: 10, borderRadius: 5 },
-  pageBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 12 },
-  modal: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.9)', zIndex: 1000, justifyContent: 'center', alignItems: 'center', padding: 8 },
-  modalContent: { width: '100%', maxWidth: 700, backgroundColor: '#0b1622', borderRadius: 12, overflow: 'hidden' },
-  closeBtn: { position: 'absolute', top: 15, right: 15, zIndex: 30, backgroundColor: 'rgba(0,0,0,0.5)', padding: 10, borderRadius: 20 },
-  modalBanner: { width: '100%', height: 200, resizeMode: 'cover' },
-  detailsContainer: { padding: 20 },
-  modalTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
-  releaseLabel: { color: '#64748b', fontSize: 12 },
-  ratingText: { color: '#5e96f1', fontSize: 18, fontWeight: 'bold' },
-  genreTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 12 },
-  genreTag: { backgroundColor: '#1e293b', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4, border: '1px solid #334155' },
-  genreTagText: { color: '#94a3b8', fontSize: 10, fontWeight: 'bold' },
-  synopsisText: { color: '#cbd5e1', fontSize: 14, lineHeight: 22 },
-  serverDisplay: { marginTop: 20, padding: 10, backgroundColor: '#151f2e', borderRadius: 8, borderLeftWidth: 4, borderColor: '#5e96f1' },
-  serverText: { color: '#fff', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
-  watchBtn: { backgroundColor: '#5e96f1', padding: 18, borderRadius: 30, alignItems: 'center', marginTop: 25, shadowColor: '#5e96f1', shadowOpacity: 0.4, shadowRadius: 10 },
-  watchBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16, letterSpacing: 1 },
-  customControls: { backgroundColor: '#151f2e', padding: 20, justifyContent: 'center', alignItems: 'center', borderTopWidth: 1, borderColor: '#1e293b' },
-  promoText: { color: '#94a3b8', fontSize: 12, textAlign: 'center', lineHeight: 18, maxWidth: '80%', marginBottom: 15 },
-  copyBtn: { backgroundColor: '#5e96f1', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 20 },
-  copyBtnText: { color: '#fff', fontSize: 11, fontWeight: 'bold' },
-  botIconImg: { width: 35, height: 35, resizeMode: 'contain'},
-  aiFab: { 
-    position: 'absolute', bottom: 25, right: 25, width: 65, height: 65, borderRadius: 32.5, 
-    backgroundColor: '#5e96f1', justifyContent: 'center', alignItems: 'center', zIndex: 999,
-    shadowColor: '#5e96f1', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.6, shadowRadius: 12,
-    elevation: 12, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)'
-  },
-  aiIconCircle: { width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  onlineIndicator: { position: 'absolute', bottom: 15, right: 15, width: 10, height: 10, borderRadius: 5, backgroundColor: '#10b981', borderWidth: 1.5, borderColor: '#5e96f1' },
-  chatWindow: { 
-    position: 'absolute', bottom: 100, right: 10, 
-    width: '95%' as any, 
-    maxWidth: 400,
-    height: '60%' as any, 
-    maxHeight: 600, minHeight: 350, backgroundColor: '#151f2e', borderRadius: 20, zIndex: 1000, 
-    overflow: 'hidden', borderWidth: 1, borderColor: '#1e293b', shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 20, elevation: 15,
-  },
-  chatHeader: { padding: 20, backgroundColor: '#1e293b', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderColor: '#334155' },
-  chatTitle: { color: '#5e96f1', fontWeight: '900', fontSize: 16, letterSpacing: 0.5 },
-  chatStatus: { color: '#64748b', fontSize: 10, marginTop: 2 },
-  chatBody: { flex: 1, padding: 15, backgroundColor: '#0b1622' },
-  msgWrapper: { marginBottom: 15 },
-  msgBubble: { padding: 12, borderRadius: 18, maxWidth: '85%' },
-  userMsg: { alignSelf: 'flex-end', backgroundColor: '#5e96f1', borderBottomRightRadius: 2 },
-  botMsg: { alignSelf: 'flex-start', backgroundColor: '#1e293b', borderBottomLeftRadius: 2, borderWidth: 1, borderColor: '#334155' },
-  msgText: { color: '#fff', fontSize: 13, lineHeight: 18 },
-  msgTime: { color: '#475569', fontSize: 9, marginTop: 4, fontWeight: 'bold', textTransform: 'uppercase', flexWrap: 'wrap' },
-  typingContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 5 },
-  typingText: { color: '#64748b', fontSize: 11, fontStyle: 'italic' },
-  quickReplyContainer: { paddingVertical: 10, backgroundColor: '#0b1622', borderTopWidth: 1, borderColor: '#1e293b' },
-  quickReplyScroll: { paddingHorizontal: 15, gap: 10 },
-  quickReplyChip: { backgroundColor: '#1e293b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 15, borderWidth: 1, borderColor: '#334155' },
-  quickReplyText: { color: '#cbd5e1', fontSize: 11 },
-  chatInputRow: { flexDirection: 'row', padding: 15, backgroundColor: '#1e293b', gap: 10, alignItems: 'center' },
-  chatInput: { flex: 1, backgroundColor: '#0b1622', color: '#fff', borderRadius: 25, paddingHorizontal: 18, fontSize: 13, height: 45, borderWidth: 1, borderColor: '#334155' },
-  sendBtn: { backgroundColor: '#5e96f1', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 20, justifyContent: 'center' },
-  downloadButton: {
-  backgroundColor: '#1e293b',
-  padding: 15,
-  borderRadius: 8,
-  borderWidth: 1,
-  borderColor: '#5e96f1',
-  alignItems: 'center',
-  marginVertical: 10,
-  width: '100%',
-}
+  container: { flex: 1 },
 });
 
 const markdownStyles = StyleSheet.create({
-  body: {
-    color: '#fff', 
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  strong: {
-    fontWeight: 'bold',
-    color: '#00DDFF', // Blue color for bolded titles
-  },
-  bullet_list: {
-    marginVertical: 10,
-  },
-  list_item: {
-    color: '#fff',
-    fontSize: 13,
-  },
+  body: { color: '#f0f4ff', fontSize: 13, lineHeight: 20 },
+  strong: { fontWeight: 'bold', color: '#4f8ef7' },
+  bullet_list: { marginVertical: 8 },
+  list_item: { color: '#f0f4ff', fontSize: 13 },
 });
