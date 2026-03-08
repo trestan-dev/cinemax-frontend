@@ -3059,8 +3059,7 @@ const askAI = async () => {
             src={SERVER_URL(wtMovie.type, wtMovie.tmdbId)}
             style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+            referrerPolicy="no-referrer-when-downgrade"/>
           <div className="cx-pip-controls">
             <button className="cx-pip-btn expand" onClick={() => { setWatchTogetherVisible(true); setWtPip(false); }}>
               <i className="fa fa-expand" /> Expand
