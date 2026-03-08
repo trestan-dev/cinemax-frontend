@@ -2188,8 +2188,9 @@ const askAI = async () => {
                     style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
+                    sandbox="allow-scripts allow-same-origin"
                     referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+                    
                   />
                 )}
                 <div className="cx-player-bar">
@@ -2291,8 +2292,9 @@ const askAI = async () => {
                     style={{ width: '100%', height: '100%', border: 'none', display: 'block', WebkitOverflowScrolling: 'touch' } as any}
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
+                    sandbox="allow-scripts allow-same-origin"
                     referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+                    
                     onLoad={(e: any) => {
                       try { e.target.contentWindow?.postMessage({ type: 'play' }, '*'); } catch(_) {}
                     }}
@@ -2621,8 +2623,9 @@ const askAI = async () => {
             src={SERVER_URL(wtMovie.type, wtMovie.tmdbId)}
             style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
+                    sandbox="allow-scripts allow-same-origin"
             referrerPolicy="no-referrer-when-downgrade"
-            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+            
           />
           <div className="cx-pip-controls">
             <button className="cx-pip-btn expand" onClick={() => { setWatchTogetherVisible(true); setWtPip(false); }}>
