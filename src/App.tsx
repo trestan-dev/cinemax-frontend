@@ -1247,6 +1247,8 @@ const askAI = async () => {
   };
 
 
+  useEffect(() => {
+    if (heroMovies.length > 0) {
       const interval = setInterval(() => {
         setHeroIndex((prev) => {
           const next = (prev + 1) % heroMovies.length;
@@ -2312,7 +2314,6 @@ const askAI = async () => {
           {/* FILTER TOP PANEL */}
           <div className={`cx-filter-side ${filterPanelOpen ? 'open' : ''}`}>
             <div className="cx-filter-grid">
-              {/* Col 1: Year */}
               <div className="cx-filter-col">
                 <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
                 <div className="cx-date-row">
@@ -2331,7 +2332,6 @@ const askAI = async () => {
                   ))}
                 </div>
               </div>
-              {/* Col 2: Month From */}
               <div className="cx-filter-col">
                 <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
                 <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
@@ -2344,7 +2344,6 @@ const askAI = async () => {
                   ))}
                 </div>
               </div>
-              {/* Col 3: Month To */}
               <div className="cx-filter-col">
                 <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
                 <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
@@ -2357,7 +2356,6 @@ const askAI = async () => {
                   ))}
                 </div>
               </div>
-              {/* Col 4: Genres */}
               <div className="cx-filter-col">
                 <div className="cx-filter-row-header" style={{ marginBottom: 6 }}>
                   <div className="cx-filter-label" style={{ margin: 0 }}><i className="fa fa-masks-theater" />Genres</div>
