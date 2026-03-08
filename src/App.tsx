@@ -2999,7 +2999,7 @@ const askAI = async () => {
                   placeholder="Search movies & series..."
                 />
                 <div className="cx-type-toggle">
-                  {(['movie', 'tv'] as const).map(t => (
+                  {((['movie', 'tv']) as Array<'movie' | 'tv'>).map(t => (
                     <button key={t} className={`cx-type-btn ${wtPickerType === t ? 'active' : ''}`}
                       onClick={() => { setWtPickerType(t); setWtPickerPage(1); }}>
                       <i className={`fa ${t === 'movie' ? 'fa-film' : 'fa-tv'}`} />
