@@ -257,6 +257,14 @@ export default function App() {
   const [monthTo, setMonthTo] = useState(localStorage.getItem('filter_monthTo') || "12");
   const [copied, setCopied] = useState(false);
 
+  // ── NEW FEATURES ─────────────────────────────────────
+  const [comingSoon, setComingSoon] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [categoryRows, setCategoryRows] = useState<{title: string, genre: number|null, type: string, items: any[]}[]>([]);
+  const [rowsLoading, setRowsLoading] = useState(false);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [homeSubTab, setHomeSubTab] = useState<'browse'|'coming'|'hot'>('browse');
+
   // Persist filter state
   useEffect(() => { 
     if (selectedGenre !== null) localStorage.setItem('filter_genre', String(selectedGenre));
@@ -1139,8 +1147,106 @@ const askAI = async () => {
     } catch (e) { console.error("Hero Fetch Error:", e); }
   };
 
-  useEffect(() => {
-    if (heroMovies.length > 0) {
+  // ── FETCH COMING SOON ─────────────────────────────────
+  const fetchComingSoon = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const type = activeTab === 'Series' ? 'tv' : 'movie';
+      const dateParam = type === 'movie' ? 'primary_release_date' : 'first_air_date';
+      const url = `${BACKEND_URL}/api/movies/discover?type=${type}&page=1&sort_by=popularity.desc&${dateParam}.gte=${today}&${dateParam}.lte=${future}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.results) {
+        const grouped: Record<string, any[]> = {};
+        data.results.slice(0, 20).forEach(m => {
+          const d = m.release_date || m.first_air_date || '';
+          if (!d) return;
+          const label = new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+          if (!grouped[label]) grouped[label] = [];
+          grouped[label].push({
+            id: m.id.toString(), title: m.title || m.name,
+            poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : '',
+            banner: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : '',
+            tmdbId: m.id, type,
+            releaseDate: m.release_date || m.first_air_date || '',
+            synopsis: m.overview || '', rating: m.vote_average,
+            genreIds: m.genre_ids, popularity: m.popularity
+          });
+        });
+        setComingSoon(Object.entries(grouped).map(([date, items]) => ({ date, items })));
+      }
+    } catch(e) { console.error('Coming Soon error:', e); }
+  };
+
+  // ── FETCH LEADERBOARD (top by popularity) ─────────────
+  const fetchLeaderboard = async () => {
+    try {
+      const type = activeTab === 'Series' ? 'tv' : 'movie';
+      const url = `${BACKEND_URL}/api/movies/discover?type=${type}&page=1&sort_by=popularity.desc`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.results) {
+        setLeaderboard(data.results.slice(0, 20).map((m, i) => ({
+          rank: i + 1, id: m.id.toString(), title: m.title || m.name,
+          poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : '',
+          tmdbId: m.id, type,
+          releaseDate: m.release_date || m.first_air_date || '',
+          synopsis: m.overview || '', rating: m.vote_average,
+          genreIds: m.genre_ids,
+          score: Math.round(m.popularity * 100),
+          banner: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : '',
+        })));
+      }
+    } catch(e) { console.error('Leaderboard error:', e); }
+  };
+
+  // ── FETCH CATEGORY ROWS (Netflix-style) ───────────────
+  const CATEGORY_DEFS = [
+    { title: '🔥 Trending Now', genre: null, sort: 'popularity.desc' },
+    { title: '⭐ Top Rated', genre: null, sort: 'vote_average.desc', minVotes: 200 },
+    { title: '🎭 Drama', genre: 18, sort: 'popularity.desc' },
+    { title: '😂 Comedy', genre: 35, sort: 'popularity.desc' },
+    { title: '💀 Horror', genre: 27, sort: 'popularity.desc' },
+    { title: '🚀 Action', genre: 28, sort: 'popularity.desc' },
+    { title: '❤️ Romance', genre: 10749, sort: 'popularity.desc' },
+    { title: '🌏 K-Drama', genre: 18, sort: 'popularity.desc', country: 'KR' },
+    { title: '🇵🇭 Filipino', genre: null, sort: 'popularity.desc', country: 'PH' },
+    { title: '🎌 Anime', genre: 16, sort: 'popularity.desc', country: 'JP' },
+    { title: '🔬 Sci-Fi', genre: 878, sort: 'popularity.desc' },
+    { title: '🧩 Mystery & Thriller', genre: 53, sort: 'popularity.desc' },
+  ];
+
+  const fetchCategoryRows = async () => {
+    setRowsLoading(true);
+    const type = activeTab === 'Series' ? 'tv' : 'movie';
+    try {
+      const results = await Promise.all(
+        CATEGORY_DEFS.map(async (cat) => {
+          let url = `${BACKEND_URL}/api/movies/discover?type=${type}&page=1&sort_by=${cat.sort}`;
+          if (cat.genre) url += `&with_genres=${cat.genre}`;
+          if ((cat as any).country) url += `&with_origin_country=${(cat as any).country}`;
+          if ((cat as any).minVotes) url += `&vote_count.gte=${(cat as any).minVotes}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const items = (data.results || []).slice(0, 20).map(m => ({
+            id: m.id.toString(), title: m.title || m.name,
+            poster: m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : '',
+            banner: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : '',
+            tmdbId: m.id, type,
+            releaseDate: m.release_date || m.first_air_date || '',
+            synopsis: m.overview || '', rating: m.vote_average,
+            genreIds: m.genre_ids
+          }));
+          return { title: cat.title, genre: cat.genre, type, items };
+        })
+      );
+      setCategoryRows(results.filter(r => r.items.length > 0));
+    } catch(e) { console.error('Category rows error:', e); }
+    finally { setRowsLoading(false); }
+  };
+
+
       const interval = setInterval(() => {
         setHeroIndex((prev) => {
           const next = (prev + 1) % heroMovies.length;
@@ -1246,7 +1352,12 @@ const askAI = async () => {
 
   useEffect(() => { 
     fetchHero(); 
-    fetchMovies(); 
+    fetchMovies();
+    if (activeTab === 'Home') {
+      fetchCategoryRows();
+      fetchComingSoon();
+      fetchLeaderboard();
+    }
     setPageInput(groupPage.toString());
   }, [activeTab, selectedGenre, selectedCountry, yearFrom, yearTo, monthFrom, monthTo, debouncedSearch, groupPage]);
 
@@ -1993,6 +2104,129 @@ const askAI = async () => {
           .cx-hero-title { font-size: 24px; }
           .cx-modal-title { font-size: 24px; }
         }
+
+        /* ── CATEGORY ROWS (Netflix-style) ── */
+        .cx-row-section { padding: 0 0 8px; }
+        .cx-row-header {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px 16px 10px;
+        }
+        .cx-row-title {
+          font-family: var(--font-body); font-size: 15px; font-weight: 800;
+          color: var(--text-primary); letter-spacing: 0.2px;
+        }
+        .cx-row-see-all {
+          color: var(--accent); font-size: 11px; font-weight: 600;
+          background: none; border: none; cursor: pointer; font-family: var(--font-body);
+          display: flex; align-items: center; gap: 4px; opacity: 0.8;
+        }
+        .cx-row-scroll {
+          display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 4px;
+        }
+        .cx-row-scroll::-webkit-scrollbar { display: none; }
+        .cx-row-card {
+          flex-shrink: 0; cursor: pointer; position: relative;
+          border-radius: 8px; overflow: hidden;
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .cx-row-card:hover { transform: scale(1.04); box-shadow: 0 8px 24px rgba(0,0,0,0.7); }
+        .cx-row-card-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.92) 100%);
+          opacity: 0; transition: opacity 0.2s;
+          display: flex; flex-direction: column; justify-content: flex-end; padding: 8px;
+        }
+        .cx-row-card:hover .cx-row-card-overlay { opacity: 1; }
+        .cx-row-card-title {
+          color: #fff; font-size: 10px; font-weight: 700;
+          text-align: center; margin-top: 5px; padding: 0 2px;
+          font-family: var(--font-body); white-space: nowrap;
+          overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ── COMING SOON ── */
+        .cx-coming-section { padding: 0 16px 16px; }
+        .cx-coming-date-label {
+          font-family: var(--font-display); font-size: 22px; letter-spacing: 1px;
+          color: var(--text-primary); margin: 20px 0 12px;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .cx-coming-date-label::after {
+          content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+        .cx-coming-card {
+          background: var(--bg-card); border-radius: var(--radius-lg);
+          border: 1px solid var(--border); overflow: hidden; margin-bottom: 12px;
+          cursor: pointer; transition: border-color 0.2s;
+        }
+        .cx-coming-card:hover { border-color: var(--accent); }
+        .cx-coming-card-inner { display: flex; gap: 0; }
+        .cx-coming-info { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .cx-coming-title { color: var(--text-primary); font-weight: 800; font-size: 15px; line-height: 1.2; }
+        .cx-coming-genres { display: flex; flex-wrap: wrap; gap: 5px; }
+        .cx-coming-genre { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-muted); padding: 3px 8px; border-radius: 5px; font-size: 10px; font-weight: 600; }
+        .cx-coming-synopsis { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+        .cx-coming-remind-btn {
+          display: flex; align-items: center; gap: 6px;
+          background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+          border: none; color: #fff; padding: 8px 16px; border-radius: 20px;
+          font-size: 11px; font-weight: 700; font-family: var(--font-body);
+          cursor: pointer; align-self: flex-start; margin-top: 4px;
+          transition: all 0.2s; box-shadow: 0 2px 10px var(--accent-glow);
+        }
+        .cx-coming-remind-btn:hover { transform: translateY(-1px); }
+
+        /* ── LEADERBOARD ── */
+        .cx-lb-section { padding: 0 16px 16px; }
+        .cx-lb-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .cx-lb-title { font-family: var(--font-display); font-size: 26px; letter-spacing: 1px; color: var(--text-primary); }
+        .cx-lb-subtitle { color: var(--text-muted); font-size: 11px; line-height: 1.4; }
+        .cx-lb-item {
+          display: flex; align-items: center; gap: 12px;
+          background: var(--bg-card); border-radius: var(--radius);
+          border: 1px solid var(--border); padding: 10px 12px;
+          margin-bottom: 8px; cursor: pointer; transition: all 0.2s;
+        }
+        .cx-lb-item:hover { border-color: var(--accent); background: var(--bg-elevated); }
+        .cx-lb-rank {
+          font-family: var(--font-display); font-size: 28px; letter-spacing: 1px;
+          color: var(--text-muted); min-width: 32px; text-align: center; line-height: 1;
+        }
+        .cx-lb-rank.top3 { color: var(--gold); }
+        .cx-lb-info { flex: 1; min-width: 0; }
+        .cx-lb-name { color: var(--text-primary); font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cx-lb-meta { color: var(--text-muted); font-size: 10px; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+        .cx-lb-score { color: var(--red); font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+
+        /* ── SIDE FILTER PANEL ── */
+        .cx-side-layout { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+        .cx-filter-side {
+          width: 260px; flex-shrink: 0;
+          background: var(--bg-secondary); border-right: 1px solid var(--border);
+          overflow-y: auto; padding: 14px;
+          transition: width 0.25s ease, opacity 0.25s ease;
+        }
+        .cx-filter-side.closed { width: 0; overflow: hidden; opacity: 0; padding: 0; }
+        .cx-filter-side-title {
+          color: var(--text-primary); font-weight: 800; font-size: 14px;
+          margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        .cx-filter-side-title i { color: var(--accent); }
+        .cx-content-side { flex: 1; overflow-y: auto; min-width: 0; }
+
+        /* ── HOME TABS (Coming Soon / Hot / Categories) ── */
+        .cx-home-tabs { display: flex; gap: 4px; padding: 12px 16px 0; border-bottom: 1px solid var(--border); }
+        .cx-home-tab {
+          padding: 8px 16px; border-radius: 8px 8px 0 0; font-size: 13px; font-weight: 700;
+          font-family: var(--font-body); cursor: pointer; border: none;
+          color: var(--text-muted); background: none; transition: all 0.15s;
+          display: flex; align-items: center; gap: 6px;
+        }
+        .cx-home-tab.active {
+          color: var(--accent); background: var(--accent-glow);
+          border-bottom: 2px solid var(--accent);
+        }
+        .cx-home-tab:hover:not(.active) { color: var(--text-primary); background: var(--bg-elevated); }
       `}</style>
 
       <div className="cx-header">
@@ -2030,12 +2264,12 @@ const askAI = async () => {
             Watch Together
           </button>
           <button
-            className={`cx-nav-btn ${showFilters ? 'active' : ''}`}
-            onClick={() => setShowFilters(!showFilters)}
+            className={`cx-nav-btn ${filterPanelOpen ? 'active' : ''}`}
+            onClick={() => setFilterPanelOpen(p => !p)}
           >
             <i className="fa fa-sliders" />
             Filter
-            <i className={`fa fa-chevron-${showFilters ? 'up' : 'down'}`} style={{ fontSize: 10 }} />
+            <i className={`fa fa-chevron-${filterPanelOpen ? 'up' : 'down'}`} style={{ fontSize: 10 }} />
           </button>
         </div>
       </div>
@@ -2044,156 +2278,304 @@ const askAI = async () => {
           <span style={{ color: 'var(--text-muted)', fontSize: 9, letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'var(--font-body)' }}>SPONSORSHIP</span>
         </div>
       )}
-      {!watchTogetherVisible && showFilters && (
-        <div className="cx-filter-drawer">
-          <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
-          <div className="cx-date-row">
-            <input className="cx-date-input" value={yearFrom} onChange={e => handleYearFromChange(e.target.value)} placeholder="From" maxLength={4} />
-            <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>→</span>
-            <input className="cx-date-input" value={yearTo} onChange={e => handleYearToChange(e.target.value)} placeholder="To" maxLength={4} />
-          </div>
 
-          <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
-          <div className="cx-chip-row">
-            {MONTHS.map(m => (
-              <button key={`f-${m.val}`} className={`cx-chip ${monthFrom === m.val ? 'active' : ''}`}
-                onClick={() => { setMonthFrom(m.val); if (yearFrom === yearTo && parseInt(monthTo) < parseInt(m.val)) setMonthTo(m.val); }}>
-                {m.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
-          <div className="cx-chip-row">
-            {MONTHS.map(m => (
-              <button key={`t-${m.val}`} className={`cx-chip ${monthTo === m.val ? 'active' : ''}`}
-                onClick={() => { if (!(yearFrom === yearTo && parseInt(m.val) < parseInt(monthFrom))) setMonthTo(m.val); }}>
-                {m.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="cx-filter-row-header">
-            <div className="cx-filter-label" style={{ margin: '14px 0 8px' }}><i className="fa fa-masks-theater" />Genres</div>
-            <input className="cx-genre-search" placeholder="Find genre..." value={genreSearch} onChange={e => setGenreSearch(e.target.value)} />
-          </div>
-          <div className="cx-chip-row">
-            {filteredGenres.map(g => (
-              <button key={g.name} className={`cx-chip ${selectedGenre === g.id ? 'active' : ''}`} onClick={() => setSelectedGenre(g.id)}>
-                {g.name}
-              </button>
-            ))}
-          </div>
-
-          <div className="cx-filter-label"><i className="fa fa-globe" />Region</div>
-          <div className="cx-chip-row">
-            {COUNTRIES.map(c => (
-              <button key={c.code} className={`cx-chip ${selectedCountry === c.code ? 'active' : ''}`} onClick={() => setSelectedCountry(c.code)}>
-                {c.name}
-              </button>
-            ))}
-          </div>
-
-          <button className="cx-reset-btn" onClick={() => { setSelectedGenre(null); setSelectedCountry(''); setYearFrom('1990'); setYearTo(CURRENT_YEAR.toString()); setMonthFrom('01'); setMonthTo('12'); }}>
-            <i className="fa fa-rotate-left" /> Reset All Filters
-          </button>
+      {/* ── HOME SUB-TABS ── */}
+      {!watchTogetherVisible && activeTab === 'Home' && !search && (
+        <div className="cx-home-tabs">
+          {[
+            { key: 'browse', icon: 'fa-th-large', label: 'Browse' },
+            { key: 'coming', icon: 'fa-clock', label: 'Coming Soon' },
+            { key: 'hot',    icon: 'fa-fire', label: 'Hot & Trending' },
+          ].map(t => (
+            <button key={t.key} className={`cx-home-tab ${homeSubTab === t.key ? 'active' : ''}`} onClick={() => setHomeSubTab(t.key as any)}>
+              <i className={`fa ${t.icon}`} />{t.label}
+            </button>
+          ))}
         </div>
       )}
 
-      {!watchTogetherVisible && <ScrollView style={{ flex: 1 }}>
-        {!search && activeTab === 'Home' && heroMovies.length > 0 && (
-          <div className="cx-hero" style={{ height: width < 480 ? 280 : 380 }}>
-            <div className="cx-hero-badge">
-              <div className="cx-hero-badge-dot" />
-              <span className="cx-hero-badge-text">TRENDING TODAY</span>
+      {/* ── MAIN CONTENT: side-by-side filter + movies ── */}
+      {!watchTogetherVisible && (
+        <div className="cx-side-layout" style={{ flex: 1, minHeight: 0 }}>
+
+          {/* FILTER SIDE PANEL */}
+          <div className={`cx-filter-side ${filterPanelOpen ? '' : 'closed'}`}>
+            <div className="cx-filter-side-title"><i className="fa fa-sliders" />Filters</div>
+
+            <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
+            <div className="cx-date-row" style={{ marginBottom: 12 }}>
+              <input className="cx-date-input" value={yearFrom} onChange={e => handleYearFromChange(e.target.value)} placeholder="From" maxLength={4} />
+              <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>→</span>
+              <input className="cx-date-input" value={yearTo} onChange={e => handleYearToChange(e.target.value)} placeholder="To" maxLength={4} />
             </div>
-            <ScrollView
-              ref={sliderRef}
-              horizontal pagingEnabled showsHorizontalScrollIndicator={false}
-              onScroll={handleOnScroll} scrollEventThrottle={16}
-              snapToAlignment="center" decelerationRate="fast"
-              contentContainerStyle={{ width: width * heroMovies.length }}
-            >
-              {heroMovies.map((m, i) => (
-                <View key={i} style={{ width, height: width < 480 ? 280 : 380, overflow: 'hidden' }}>
-                  <Image source={{ uri: m.banner }} style={{ width: '100%', height: '100%', opacity: 0.55, resizeMode: 'cover' }} />
-                  <div className="cx-hero-overlay">
-                    <div style={{ overflow: 'hidden' }}>
-                      <span className="cx-hero-rank">{i + 1}</span>
-                      <div style={{ display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 70px)' }}>
-                        <div className="cx-hero-title" style={{ fontSize: width < 480 ? 22 : 32 }}>{m.title}</div>
-                        <div className="cx-hero-meta">
-                          <i className="fa fa-calendar" style={{ marginRight: 4 }} />{m.releaseDate?.slice(0,4)}
-                          &nbsp;&nbsp;<i className="fa fa-star" style={{ color: 'var(--gold)', marginRight: 4 }} />{m.rating?.toFixed(1)}
-                        </div>
-                        <div className="cx-hero-synopsis" style={{ display: width < 480 ? 'none' : 'block' }}>{m.synopsis?.slice(0,120)}...</div>
-                      </div>
-                    </div>
-                    <button className="cx-hero-play-btn" onClick={() => syncAndPlay(m)}>
-                      <i className="fa fa-play" /> PLAY NOW
-                    </button>
-                  </div>
-                </View>
-              ))}
-            </ScrollView>
-            <div className="cx-hero-dots">
-              {heroMovies.map((_, di) => (
-                <div key={di} className={`cx-dot ${heroIndex === di ? 'active' : ''}`} />
+
+            <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
+            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+              {MONTHS.map(m => (
+                <button key={`f-${m.val}`} className={`cx-chip ${monthFrom === m.val ? 'active' : ''}`}
+                  style={{ marginBottom: 4 }}
+                  onClick={() => { setMonthFrom(m.val); if (yearFrom === yearTo && parseInt(monthTo) < parseInt(m.val)) setMonthTo(m.val); }}>
+                  {m.name}
+                </button>
               ))}
             </div>
+
+            <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
+            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+              {MONTHS.map(m => (
+                <button key={`t-${m.val}`} className={`cx-chip ${monthTo === m.val ? 'active' : ''}`}
+                  style={{ marginBottom: 4 }}
+                  onClick={() => { if (!(yearFrom === yearTo && parseInt(m.val) < parseInt(monthFrom))) setMonthTo(m.val); }}>
+                  {m.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="cx-filter-row-header" style={{ marginBottom: 6 }}>
+              <div className="cx-filter-label" style={{ margin: 0 }}><i className="fa fa-masks-theater" />Genres</div>
+              <input className="cx-genre-search" placeholder="Search..." value={genreSearch} onChange={e => setGenreSearch(e.target.value)} />
+            </div>
+            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+              {filteredGenres.map(g => (
+                <button key={g.name} className={`cx-chip ${selectedGenre === g.id ? 'active' : ''}`}
+                  style={{ marginBottom: 4 }}
+                  onClick={() => setSelectedGenre(selectedGenre === g.id ? null : g.id)}>
+                  {g.name}
+                </button>
+              ))}
+            </div>
+
+            <div className="cx-filter-label"><i className="fa fa-globe" />Region</div>
+            <div className="cx-chip-row" style={{ flexWrap: 'wrap', marginBottom: 8 }}>
+              {COUNTRIES.map(c => (
+                <button key={c.code} className={`cx-chip ${selectedCountry === c.code ? 'active' : ''}`}
+                  style={{ marginBottom: 4 }}
+                  onClick={() => setSelectedCountry(c.code)}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+
+            <button className="cx-reset-btn" onClick={() => { setSelectedGenre(null); setSelectedCountry(''); setYearFrom('1990'); setYearTo(CURRENT_YEAR.toString()); setMonthFrom('01'); setMonthTo('12'); }}>
+              <i className="fa fa-rotate-left" /> Reset Filters
+            </button>
           </div>
-        )}
 
-        <div className="cx-section">
-          {loading ? (
-            <ActivityIndicator color="#4f8ef7" style={{ marginTop: 50 }} />
-          ) : (
-            <>
-              <div className="cx-grid">
-                {movies.map((item, index) => {
-                  const cardW = width < 400 ? (width - 60) / 3 : width < 600 ? (width - 70) / 3 : width < 900 ? (width - 80) / 4 : width < 1200 ? (width - 100) / 5 : (width - 120) / 6;
-                  const posterH = cardW * 1.48;
-                  return (
-                    <React.Fragment key={`${item.id}-${index}`}>
-                      {index > 0 && index % 6 === 0 && (
-                        <div className="cx-ad-slot" style={{ width: cardW, height: posterH }}>AD</div>
-                      )}
-                      <div className="cx-card" style={{ width: cardW }} onClick={() => syncAndPlay(item)}>
-                        <Image source={{ uri: item.poster }} style={{ width: cardW, height: posterH, borderRadius: 10 }} />
-                        <div className="cx-card-overlay">
-                          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <div className="cx-card-play"><i className="fa fa-play" /></div>
-                          </div>
-                        </div>
-                        <div className="cx-rating-badge">
-                          <i className="fa fa-star" />{item.rating?.toFixed(1)}
-                        </div>
-                        <div className="cx-card-title">{item.title}</div>
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
+          {/* CONTENT SIDE */}
+          <div className="cx-content-side">
+            <ScrollView style={{ flex: 1 }}>
 
-              {movies.length > 0 && (
-                <div className="cx-pagination">
-                  <button className="cx-page-btn" disabled={groupPage === 1} onClick={() => setGroupPage(p => Math.max(1, p - 1))}>
-                    <i className="fa fa-chevron-left" /> PREV
-                  </button>
-                  <div className="cx-page-info">
-                    <span>1 ···</span>
-                    <input className="cx-page-input" value={pageInput} onChange={e => setPageInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && jumpToPage()} />
-                    <span>··· {totalPages}</span>
+              {/* ── HERO (Home tab only) ── */}
+              {!search && activeTab === 'Home' && homeSubTab === 'browse' && heroMovies.length > 0 && (
+                <div className="cx-hero" style={{ height: width < 480 ? 280 : 380 }}>
+                  <div className="cx-hero-badge">
+                    <div className="cx-hero-badge-dot" />
+                    <span className="cx-hero-badge-text">TRENDING TODAY</span>
                   </div>
-                  <button className="cx-page-btn" disabled={!hasMore || groupPage >= totalPages} onClick={() => setGroupPage(p => Math.min(totalPages, p + 1))}>
-                    NEXT <i className="fa fa-chevron-right" />
-                  </button>
+                  <ScrollView
+                    ref={sliderRef}
+                    horizontal pagingEnabled showsHorizontalScrollIndicator={false}
+                    onScroll={handleOnScroll} scrollEventThrottle={16}
+                    snapToAlignment="center" decelerationRate="fast"
+                    contentContainerStyle={{ width: (filterPanelOpen && width > 768 ? width - 260 : width) * heroMovies.length }}
+                  >
+                    {heroMovies.map((m, i) => {
+                      const w = filterPanelOpen && width > 768 ? width - 260 : width;
+                      return (
+                        <View key={i} style={{ width: w, height: width < 480 ? 280 : 380, overflow: 'hidden' }}>
+                          <Image source={{ uri: m.banner }} style={{ width: '100%', height: '100%', opacity: 0.55, resizeMode: 'cover' }} />
+                          <div className="cx-hero-overlay">
+                            <div style={{ overflow: 'hidden' }}>
+                              <span className="cx-hero-rank">{i + 1}</span>
+                              <div style={{ display: 'inline-block', verticalAlign: 'bottom', maxWidth: 'calc(100% - 70px)' }}>
+                                <div className="cx-hero-title" style={{ fontSize: width < 480 ? 22 : 32 }}>{m.title}</div>
+                                <div className="cx-hero-meta">
+                                  <i className="fa fa-calendar" style={{ marginRight: 4 }} />{m.releaseDate?.slice(0,4)}
+                                  &nbsp;&nbsp;<i className="fa fa-star" style={{ color: 'var(--gold)', marginRight: 4 }} />{m.rating?.toFixed(1)}
+                                </div>
+                                <div className="cx-hero-synopsis" style={{ display: width < 480 ? 'none' : 'block' }}>{m.synopsis?.slice(0,120)}...</div>
+                              </div>
+                            </div>
+                            <button className="cx-hero-play-btn" onClick={() => syncAndPlay(m)}>
+                              <i className="fa fa-play" /> PLAY NOW
+                            </button>
+                          </div>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                  <div className="cx-hero-dots">
+                    {heroMovies.map((_, di) => (
+                      <div key={di} className={`cx-dot ${heroIndex === di ? 'active' : ''}`} />
+                    ))}
+                  </div>
                 </div>
               )}
-            </>
-          )}
+
+              {/* ── COMING SOON TAB ── */}
+              {!search && activeTab === 'Home' && homeSubTab === 'coming' && (
+                <div className="cx-coming-section">
+                  <div style={{ color: 'var(--text-muted)', fontSize: 11, padding: '12px 0 4px', lineHeight: 1.5 }}>
+                    <i className="fa fa-clock" style={{ color: 'var(--accent)', marginRight: 6 }} />
+                    Upcoming releases in the next 30 days
+                  </div>
+                  {comingSoon.length === 0 ? (
+                    <ActivityIndicator color="#4f8ef7" style={{ marginTop: 40 }} />
+                  ) : comingSoon.map(({ date, items }) => (
+                    <div key={date}>
+                      <div className="cx-coming-date-label">{date}</div>
+                      {items.map((m, i) => (
+                        <div key={i} className="cx-coming-card" onClick={() => syncAndPlay(m)}>
+                          {m.banner && <img src={m.banner} alt={m.title} style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }} />}
+                          <div className="cx-coming-card-inner">
+                            <img src={m.poster} alt={m.title} style={{ width: 80, objectFit: 'cover', flexShrink: 0 }} />
+                            <div className="cx-coming-info">
+                              <div className="cx-coming-title">{m.title}</div>
+                              <div className="cx-coming-genres">
+                                {getGenreNames(m.genreIds).slice(0,3).map((g, gi) => (
+                                  <span key={gi} className="cx-coming-genre">{g}</span>
+                                ))}
+                              </div>
+                              <p className="cx-coming-synopsis">{m.synopsis?.slice(0, 100)}...</p>
+                              <button className="cx-coming-remind-btn" onClick={e => { e.stopPropagation(); }}>
+                                <i className="fa fa-bell" /> Remind Me
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── HOT & TRENDING / LEADERBOARD TAB ── */}
+              {!search && activeTab === 'Home' && homeSubTab === 'hot' && (
+                <div className="cx-lb-section">
+                  <div className="cx-lb-header">
+                    <div>
+                      <div className="cx-lb-title">🔥 HOT</div>
+                      <div className="cx-lb-subtitle">Ranked by popularity · updated daily</div>
+                    </div>
+                  </div>
+                  {leaderboard.length === 0 ? (
+                    <ActivityIndicator color="#4f8ef7" style={{ marginTop: 40 }} />
+                  ) : leaderboard.map((m) => (
+                    <div key={m.id} className="cx-lb-item" onClick={() => syncAndPlay(m)}>
+                      <div className={`cx-lb-rank ${m.rank <= 3 ? 'top3' : ''}`}>{m.rank}</div>
+                      <img src={m.poster} alt={m.title} style={{ width: 46, height: 68, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                      <div className="cx-lb-info">
+                        <div className="cx-lb-name">{m.title}</div>
+                        <div className="cx-lb-meta">
+                          <i className="fa fa-star" style={{ color: 'var(--gold)' }} />{m.rating?.toFixed(1)}
+                          <span>·</span>{m.releaseDate?.slice(0,4)}
+                          <span>·</span>{getGenreNames(m.genreIds).slice(0,2).join(', ')}
+                        </div>
+                      </div>
+                      <div className="cx-lb-score">
+                        🔥 {m.score.toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── BROWSE: Category Rows + regular grid ── */}
+              {(search || activeTab !== 'Home' || homeSubTab === 'browse') && (
+                <>
+                  {/* Category rows — only on Home Browse with no search */}
+                  {!search && activeTab === 'Home' && homeSubTab === 'browse' && (
+                    <>
+                      {rowsLoading ? (
+                        <ActivityIndicator color="#4f8ef7" style={{ marginTop: 30, marginBottom: 10 }} />
+                      ) : categoryRows.map((row, ri) => (
+                        <div key={ri} className="cx-row-section">
+                          <div className="cx-row-header">
+                            <span className="cx-row-title">{row.title}</span>
+                            <button className="cx-row-see-all"><i className="fa fa-chevron-right" /> See All</button>
+                          </div>
+                          <div className="cx-row-scroll">
+                            {row.items.map((item, ii) => {
+                              const cardW = width < 500 ? 100 : 120;
+                              return (
+                                <div key={ii} className="cx-row-card" style={{ width: cardW }} onClick={() => syncAndPlay(item)}>
+                                  <Image source={{ uri: item.poster }} style={{ width: cardW, height: cardW * 1.48, display: 'block' }} />
+                                  <div className="cx-row-card-overlay">
+                                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+                                      <div className="cx-card-play"><i className="fa fa-play" /></div>
+                                    </div>
+                                  </div>
+                                  <div className="cx-rating-badge" style={{ top: 4, right: 4 }}>
+                                    <i className="fa fa-star" />{item.rating?.toFixed(1)}
+                                  </div>
+                                  <div className="cx-row-card-title">{item.title}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+
+                  {/* Regular movie grid (all tabs when searching, or Movies/Series/Trending) */}
+                  {(search || activeTab !== 'Home') && (
+                    <div className="cx-section">
+                      {loading ? (
+                        <ActivityIndicator color="#4f8ef7" style={{ marginTop: 50 }} />
+                      ) : (
+                        <>
+                          <div className="cx-grid">
+                            {movies.map((item, index) => {
+                              const cardW = width < 400 ? (width - 60) / 3 : width < 600 ? (width - 70) / 3 : width < 900 ? (width - 80) / 4 : width < 1200 ? (width - 100) / 5 : (width - 120) / 6;
+                              const posterH = cardW * 1.48;
+                              return (
+                                <React.Fragment key={`${item.id}-${index}`}>
+                                  {index > 0 && index % 6 === 0 && (
+                                    <div className="cx-ad-slot" style={{ width: cardW, height: posterH }}>AD</div>
+                                  )}
+                                  <div className="cx-card" style={{ width: cardW }} onClick={() => syncAndPlay(item)}>
+                                    <Image source={{ uri: item.poster }} style={{ width: cardW, height: posterH, borderRadius: 10 }} />
+                                    <div className="cx-card-overlay">
+                                      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <div className="cx-card-play"><i className="fa fa-play" /></div>
+                                      </div>
+                                    </div>
+                                    <div className="cx-rating-badge">
+                                      <i className="fa fa-star" />{item.rating?.toFixed(1)}
+                                    </div>
+                                    <div className="cx-card-title">{item.title}</div>
+                                  </div>
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                          {movies.length > 0 && (
+                            <div className="cx-pagination">
+                              <button className="cx-page-btn" disabled={groupPage === 1} onClick={() => setGroupPage(p => Math.max(1, p - 1))}>
+                                <i className="fa fa-chevron-left" /> PREV
+                              </button>
+                              <div className="cx-page-info">
+                                <span>1 ···</span>
+                                <input className="cx-page-input" value={pageInput} onChange={e => setPageInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && jumpToPage()} />
+                                <span>··· {totalPages}</span>
+                              </div>
+                              <button className="cx-page-btn" disabled={!hasMore || groupPage >= totalPages} onClick={() => setGroupPage(p => Math.min(totalPages, p + 1))}>
+                                NEXT <i className="fa fa-chevron-right" />
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+            </ScrollView>
+          </div>
         </div>
-      </ScrollView>}
+      )}
 
       {selectedMovie && !watchTogetherVisible && (
         <div className="cx-modal-overlay cx-fade-in">
