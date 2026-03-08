@@ -541,7 +541,7 @@ export default function App() {
   // I-parse ang saved history kung mayroon, kung wala ay gamitin ang default na may timestamp
   return saved ? JSON.parse(saved) : [{ 
     role: 'assistant', 
-    content: 'Hi! I’m CinemaX AI. Looking for a specific vibe or movie recommendation?',
+    content: "Hi! I’m CinemaX AI. Looking for a specific vibe or movie recommendation?",
     timestamp: initialTime // Dito ise-save ang permanenteng oras
   }];
 });
@@ -556,7 +556,7 @@ export default function App() {
     
     setMessages([{ 
         role: 'assistant', 
-        content: 'Hi! I’m CinemaX AI. Looking for a specific vibe or movie recommendation?',
+        content: "Hi! I’m CinemaX AI. Looking for a specific vibe or movie recommendation?",
         timestamp: resetTime // Bagong oras pagkatapos i-clear
     }]);
 };
