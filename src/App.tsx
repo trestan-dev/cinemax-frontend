@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, useWindowDimension
 import Peer from 'peerjs';
 import { Dimensions } from 'react-native';
 import Markdown from 'react-native-markdown-display';
- 
+
 const handleSmartLink = () => {
   // Replace this with your actual Direct Link from Adsterra
   const smartLinkUrl = "https://www.effectivegatecpm.com/ba4n4bn1u?key=c4d46c1a4f74e3aea4ebb8725567fe32";
@@ -1247,8 +1247,6 @@ const askAI = async () => {
   };
 
 
-  useEffect(() => {
-    if (heroMovies.length > 0) {
       const interval = setInterval(() => {
         setHeroIndex((prev) => {
           const next = (prev + 1) % heroMovies.length;
@@ -2314,6 +2312,7 @@ const askAI = async () => {
           {/* FILTER TOP PANEL */}
           <div className={`cx-filter-side ${filterPanelOpen ? 'open' : ''}`}>
             <div className="cx-filter-grid">
+              {/* Col 1: Year */}
               <div className="cx-filter-col">
                 <div className="cx-filter-label"><i className="fa fa-calendar" />Year Range</div>
                 <div className="cx-date-row">
@@ -2332,6 +2331,7 @@ const askAI = async () => {
                   ))}
                 </div>
               </div>
+              {/* Col 2: Month From */}
               <div className="cx-filter-col">
                 <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month From</div>
                 <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
@@ -2344,6 +2344,7 @@ const askAI = async () => {
                   ))}
                 </div>
               </div>
+              {/* Col 3: Month To */}
               <div className="cx-filter-col">
                 <div className="cx-filter-label"><i className="fa fa-calendar-days" />Month To</div>
                 <div className="cx-chip-row" style={{ flexWrap: 'wrap' }}>
@@ -2356,6 +2357,7 @@ const askAI = async () => {
                   ))}
                 </div>
               </div>
+              {/* Col 4: Genres */}
               <div className="cx-filter-col">
                 <div className="cx-filter-row-header" style={{ marginBottom: 6 }}>
                   <div className="cx-filter-label" style={{ margin: 0 }}><i className="fa fa-masks-theater" />Genres</div>
@@ -2628,25 +2630,25 @@ const askAI = async () => {
                 </div>
               </ScrollView>
             ) : (
-              <div style={{ flex: 1, background: '#000', display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%' }}>
+              <View style={{ flex: 1, backgroundColor: '#000' }}>
                 {imdbLoading ? (
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#000', gap: 12 }}>
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
                     <ActivityIndicator color="#4f8ef7" size="large" />
-                    <span style={{ color: '#8a9bb5', fontSize: 12, fontFamily: 'Outfit, sans-serif' }}>Fetching source...</span>
-                  </div>
+                    <Text style={{ color: '#8a9bb5', fontSize: 12, marginTop: 12, fontFamily: 'Outfit, sans-serif' }}>Fetching source...</Text>
+                  </View>
                 ) : SERVERS[selectedServer].needsImdb && !imdbId ? (
-                  <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#000', padding: 20 }}>
-                    <span style={{ color: '#ef4444', fontSize: 14, textAlign: 'center' }}>IMDB ID not found for this title. Try another server.</span>
-                  </div>
+                  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000', padding: 20 }}>
+                    <Text style={{ color: '#ef4444', fontSize: 14, textAlign: 'center' }}>IMDB ID not found for this title. Try another server.</Text>
+                  </View>
                 ) : (
                   <iframe
                     key={`player-${selectedMovie.tmdbId}-${selectedServer}`}
                     src={SERVER_URL(selectedMovie.type, selectedMovie.tmdbId, 0, selectedServer, imdbId || undefined)}
-                    style={{ flex: 1, width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
+                    style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
                     referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups"
+                    
                   />
                 )}
                 <div className="cx-player-bar">
@@ -2667,7 +2669,7 @@ const askAI = async () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </View>
             )}
           </div>
         </div>
@@ -2677,7 +2679,7 @@ const askAI = async () => {
           WATCH TOGETHER — FULL SCREEN PAGE
       ══════════════════════════════════════════════════ */}
       {watchTogetherVisible && (
-        <div style={{ position: 'fixed', inset: 0, background: '#080e17', zIndex: 500, display: 'flex', flexDirection: 'column' }} onTouchStart={resetInactivityTimer}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#080e17', zIndex: 500, flexDirection: 'column' }} onTouchStart={resetInactivityTimer}>
 
           {/* ── TOP BAR ── */}
           <div className="cx-wt-topbar">
@@ -2749,7 +2751,7 @@ const askAI = async () => {
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
                     referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups"
+                    
                     onLoad={(e: any) => {
                       try { e.target.contentWindow?.postMessage({ type: 'play' }, '*'); } catch(_) {}
                     }}
@@ -2848,8 +2850,8 @@ const askAI = async () => {
                 <div className="cx-minimized-info">
                   <Image source={{ uri: wtMovie.poster }} style={{ width: 30, height: 44, borderRadius: 4 }} />
                   <div>
-                    <div style={{ color: '#f0f4ff', fontWeight: '700', fontSize: 12, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', maxWidth: 120 }}>{wtMovie.title}</div>
-                    <div style={{ color: '#4f8ef7', fontSize: 10 }}><i className="fa fa-play" /> Playing</div>
+                    <Text style={{ color: '#f0f4ff', fontWeight: '700', fontSize: 12 }} numberOfLines={1}>{wtMovie.title}</Text>
+                    <Text style={{ color: '#4f8ef7', fontSize: 10 }}><i className="fa fa-play" /> Playing</Text>
                   </div>
                 </div>
                 <button className="cx-minimized-expand" onClick={() => setWtVideoMinimized(false)}>
@@ -2887,7 +2889,7 @@ const askAI = async () => {
                         </div>
                         <div className="cx-waiting-row">
                           <div className="cx-waiting-dot" />
-                          <span style={{ color: '#f59e0b', fontSize: 11 }}>Waiting for friend to join...</span>
+                          <Text style={{ color: '#f59e0b', fontSize: 11 }}>Waiting for friend to join...</Text>
                         </div>
                       </>
                     )}
@@ -2933,7 +2935,7 @@ const askAI = async () => {
 
               ) : (
                 /* ── CONNECTED: chat + controls ── */
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <View style={{ flex: 1, flexDirection: 'column' }}>
                   {/* Room info strip */}
                   <div className="cx-connected-strip">
                     <div>
@@ -2996,14 +2998,14 @@ const askAI = async () => {
                       <i className="fa fa-paper-plane" />
                     </button>
                   </div>
-                </div>
+                </View>
               )}
             </div>
           </div>
 
           {/* ── MOVIE PICKER OVERLAY (Host Only) ── */}
           {wtShowMoviePicker && (
-            <div style={{ position: 'absolute', inset: 0, background: '#080e17', zIndex: 100, display: 'flex', flexDirection: 'column' }}>
+            <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#080e17', zIndex: 100, flexDirection: 'column' }}>
               <div className="cx-picker-header">
                 <div className="cx-picker-top">
                   <div className="cx-picker-title"><i className="fa fa-film" />Pick a Movie</div>
@@ -3064,10 +3066,10 @@ const askAI = async () => {
                   </button>
                 )}
               </ScrollView>
-            </div>
+            </View>
           )}
 
-        </div>
+        </View>
       )}
 
       {/* ══ WATCH TOGETHER PiP ══ */}
@@ -3078,9 +3080,7 @@ const askAI = async () => {
             src={SERVER_URL(wtMovie.type, wtMovie.tmdbId)}
             style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
-            referrerPolicy="no-referrer-when-downgrade"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups"
-          />
+            referrerPolicy="no-referrer-when-downgrade"/>
           <div className="cx-pip-controls">
             <button className="cx-pip-btn expand" onClick={() => { setWatchTogetherVisible(true); setWtPip(false); }}>
               <i className="fa fa-expand" /> Expand
@@ -3113,7 +3113,7 @@ const askAI = async () => {
       )}
 
       {chatMode === 'open' && (
-        <div style={{ position: 'fixed', inset: 0, background: '#080e17', zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#080e17', zIndex: 1000, flexDirection: 'column' }}>
           <div className="cx-ai-header">
             <div className="cx-ai-header-left">
               <button className="cx-wt-back" onClick={closeChatToFab}>
@@ -3138,7 +3138,7 @@ const askAI = async () => {
               <div key={i} className={`cx-ai-msg ${msg.role === 'user' ? 'user' : 'bot'}`}>
                 <div className={`cx-ai-bubble ${msg.role === 'user' ? 'user' : 'bot'}`}>
                   {msg.role === 'user' ? (
-                    <span style={{ color: '#fff', fontSize: 13, lineHeight: '20px' }}>{msg.content}</span>
+                    <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{msg.content}</Text>
                   ) : (
                     <Markdown style={markdownStyles}>{msg.content}</Markdown>
                   )}
@@ -3150,7 +3150,7 @@ const askAI = async () => {
               <div className="cx-ai-msg bot">
                 <div className="cx-ai-bubble bot" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <ActivityIndicator size="small" color="#4f8ef7" />
-                  <span style={{ color: '#8a9bb5', fontSize: 12 }}>CinemaX is thinking...</span>
+                  <Text style={{ color: '#8a9bb5', fontSize: 12 }}>CinemaX is thinking...</Text>
                 </div>
               </div>
             )}
@@ -3174,7 +3174,7 @@ const askAI = async () => {
               <i className="fa fa-paper-plane" />
             </button>
           </div>
-        </div>
+        </View>
       )}
     </div>
   );
