@@ -287,6 +287,8 @@ export default function App() {
   // Keep refs in sync with state
   useEffect(() => { connRef.current = conn; }, [conn]);
   useEffect(() => { hostModeRef.current = hostMode; }, [hostMode]);
+  const wtMovieRef = useRef<any>(null);
+  useEffect(() => { wtMovieRef.current = wtMovie; }, [wtMovie]);
   const selectedServerRef = useRef<number>(0);
   useEffect(() => { selectedServerRef.current = selectedServer; }, [selectedServer]);
   const wtVideoLoadedRef = useRef<boolean>(false);
@@ -697,6 +699,8 @@ export default function App() {
       } else if (data.type === 'REQUEST_SYNC') {
         // Guest just connected — send them the real current video time
         if (isHost) {
+          // Tell the joiner WHICH movie first, then server, then position
+          if (wtMovieRef.current) c.send({ type: 'SYNC_MOVIE', movie: wtMovieRef.current });
           c.send({ type: 'SYNC_SERVER', serverIndex: selectedServerRef.current });
           const realTime = hostRealCurrentTimeRef.current;
           if (realTime > 0) {
