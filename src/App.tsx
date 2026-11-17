@@ -320,7 +320,7 @@ export default function App() {
         // Always keep ref fresh — wtHostSeekSync reads this directly
         hostRealCurrentTimeRef.current = t;
         setHostDisplayTime(Math.floor(t));
-        c.send({ type: 'REAL_TIME_UPDATE', currentTime: t });
+        c.send({ type: 'REAL_TIME_UPDATE', currentTime: t, serverIndex: selectedServerRef.current });
       }
     }, 1000);
   };
@@ -365,13 +365,13 @@ export default function App() {
         isPlayingRef.current = false;
         const c = connRef.current;
         if (c && c.open) {
-          c.send({ type: 'HOST_SEEKED', currentTime });
+          c.send({ type: 'HOST_SEEKED', currentTime, serverIndex: selectedServerRef.current });
         }
       }
       if (evtType === 'seeked' || evtType === 'seeking') {
         const c = connRef.current;
         if (c && c.open) {
-          c.send({ type: 'HOST_SEEKED', currentTime });
+          c.send({ type: 'HOST_SEEKED', currentTime, serverIndex: selectedServerRef.current });
         }
       }
     };
@@ -631,6 +631,11 @@ export default function App() {
       }
     });
     c.on('data', (data: any) => {
+      // Guest always follows the host's server, whichever message carries it
+      if (!isHost && typeof data?.serverIndex === 'number' && data.serverIndex !== selectedServerRef.current) {
+        wtApplyServer(data.serverIndex);
+        setWtStatus(`🔀 Host server: ${SERVERS[data.serverIndex]?.name || data.serverIndex}`);
+      }
       if (data.type === 'SYNC_MOVIE') {
         setWtMovie(data.movie);
         setWtVideoLoaded(false);
@@ -705,9 +710,9 @@ export default function App() {
           const realTime = hostRealCurrentTimeRef.current;
           if (realTime > 0) {
             // Send real currentTime so guest can startAt the right position
-            c.send({ type: 'HOST_SEEKED', currentTime: realTime });
+            c.send({ type: 'HOST_SEEKED', currentTime: realTime, serverIndex: selectedServerRef.current });
           } else if (hostStartTsRef.current) {
-            c.send({ type: 'SYNC_PLAY', startTimestamp: hostStartTsRef.current });
+            c.send({ type: 'SYNC_PLAY', startTimestamp: hostStartTsRef.current, serverIndex: selectedServerRef.current });
           }
         }
 
@@ -825,7 +830,7 @@ export default function App() {
     setHostDisplayTime(0);
     setWtDriftSeconds(null);
     if (conn && conn.open) {
-      conn.send({ type: 'SYNC_MOVIE', movie });
+      conn.send({ type: 'SYNC_MOVIE', movie, serverIndex: selectedServerRef.current });
       setWtStatus('🎬 Synced new movie to friend: ' + movie.title);
     }
   };
@@ -861,6 +866,7 @@ export default function App() {
 
   // Apply a server locally; if the video is already playing, reload it at the current position
   const wtApplyServer = (index: number) => {
+    selectedServerRef.current = index;
     setSelectedServer(index);
     if (!wtVideoLoadedRef.current) return;
     let offset = 0;
@@ -896,7 +902,7 @@ export default function App() {
     resetInactivityTimer(); // activity detected
     if (conn && conn.open) {
       conn.send({ type: 'SYNC_SERVER', serverIndex: selectedServerRef.current });
-      conn.send({ type: 'SYNC_PLAY', startTimestamp });
+      conn.send({ type: 'SYNC_PLAY', startTimestamp, serverIndex: selectedServerRef.current });
     }
     // Start live time push — sends extrapolated time every 1s to guest
     startLiveTimePush();
@@ -905,7 +911,7 @@ export default function App() {
     heartbeatRef.current = setInterval(() => {
       const c = connRef.current;
       if (c && c.open && hostStartTsRef.current) {
-        c.send({ type: 'HEARTBEAT', startTimestamp: hostStartTsRef.current });
+        c.send({ type: 'HEARTBEAT', startTimestamp: hostStartTsRef.current, serverIndex: selectedServerRef.current });
       }
     }, 8000);
   };
@@ -937,7 +943,7 @@ export default function App() {
     setWtSyncMinutes('');
     setWtSyncSeconds('');
     if (conn && conn.open) {
-      conn.send({ type: 'HOST_SEEKED', currentTime: totalSeconds });
+      conn.send({ type: 'HOST_SEEKED', currentTime: totalSeconds, serverIndex: selectedServerRef.current });
     }
     const m = Math.floor(totalSeconds / 60), s = Math.floor(totalSeconds % 60);
     setWtStatus(`📡 Synced guest to ${fmtHMS(totalSeconds)}`);
@@ -969,7 +975,7 @@ export default function App() {
   const syncAndPlay = (movie) => {
     setSelectedMovie(movie);
     if (conn && conn.open) {
-      conn.send({ type: 'SYNC_MOVIE', movie });
+      conn.send({ type: 'SYNC_MOVIE', movie, serverIndex: selectedServerRef.current });
     }
   };
 
@@ -2718,7 +2724,10 @@ const askAI = async () => {
             <div style={{
               flex: wtVideoMinimized ? '0 0 0px' : (width > 768 ? '0 0 55%' : '0 0 45%'),
               backgroundColor: '#000',
-              minHeight: wtVideoMinimized ? 0 : (width > 768 ? '100%' : 220),
+              minHeight: wtVideoMinimized ? 0 : (width > 768 ? 360 : 220),
+              alignSelf: 'stretch',
+              display: 'flex',
+              flexDirection: 'column',
               position: 'relative',
               overflow: 'hidden',
             } as any}>
@@ -2738,7 +2747,7 @@ const askAI = async () => {
                   )}
                 </div>
               ) : wtVideoLoaded ? (
-                <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
                   <style>{`
                     @keyframes fadeOutOverlay { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0;pointer-events:none} }
                     .wt-autoplay-overlay { animation: fadeOutOverlay 1s forwards; background:transparent; position:absolute; inset:0; z-index:5; cursor:pointer; }
@@ -2801,7 +2810,7 @@ const askAI = async () => {
                 </div>
               ) : (
                 /* Movie info card — pre-play state */
-                <div style={{ display: 'flex', flexDirection: 'row', background: 'var(--bg-primary)', height: '100%' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'row', background: 'var(--bg-primary)', minHeight: 0 }}>
                   <img src={wtMovie.poster} alt={wtMovie.title} style={{ width: 110, objectFit: 'cover', flexShrink: 0 }} />
                   <div style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 12, overflow: 'hidden' }}>
                     <div>
