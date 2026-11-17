@@ -4,72 +4,6 @@ import Peer from 'peerjs';
 import { Dimensions } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
-const handleSmartLink = () => {
-  // Replace this with your actual Direct Link from Adsterra
-  const smartLinkUrl = "https://www.effectivegatecpm.com/ba4n4bn1u?key=c4d46c1a4f74e3aea4ebb8725567fe32";
-  
-  // Open the ad in a new tab so they don't leave your movie site
-  if (typeof window !== 'undefined') {
-    window.open(smartLinkUrl, '_blank');
-  }
-};
-
-const AdsterraBanner = () => {
-  const adRef = useRef<View>(null);
-
-  useEffect(() => {
-    // 1. Safety Check: Ensure we are on Web and the Ref is attached
-    if (typeof document !== 'undefined' && adRef.current) {
-      const container = adRef.current as any;
-
-      // 2. Clear previous content to avoid duplicate script crashes
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-
-      try {
-        // 3. Create the Configuration Script
-        const config = document.createElement('script');
-        config.type = 'text/javascript';
-        // IMPORTANT: Replace 'YOUR_KEY' with your actual numerical key from Adsterra
-        config.innerHTML = `
-          atOptions = {
-            'key' : 'YOUR_KEY',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-          };
-        `;
-
-        // 4. Create the Invocation Script
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = `//www.highperformancedformats.com/YOUR_KEY/invoke.js`;
-        
-        // 5. Append both scripts
-        container.appendChild(config);
-        container.appendChild(script);
-      } catch (e) {
-        console.error("Adsterra Injection Error:", e);
-      }
-    }
-  }, []);
-
-  // 6. Give the View a background color during testing so you can see it's there
-  return (
-    <View 
-      ref={adRef} 
-      style={{ 
-        width: 320, 
-        height: 50, 
-        backgroundColor: '#151f2e', // Match your theme
-        alignSelf: 'center' 
-      }} 
-    />
-  );
-};
-
 // App.tsx
 //export const API_URL = "https://cinemax-watch.com";
 // Change this at the top of App.tsx
@@ -2646,7 +2580,6 @@ const askAI = async () => {
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
                     referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups"
                   />
                 )}
                 <div className="cx-player-bar">
@@ -2749,7 +2682,6 @@ const askAI = async () => {
                     allowFullScreen
                     allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
                     referrerPolicy="no-referrer-when-downgrade"
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups"
                     onLoad={(e: any) => {
                       try { e.target.contentWindow?.postMessage({ type: 'play' }, '*'); } catch(_) {}
                     }}
@@ -3079,7 +3011,6 @@ const askAI = async () => {
             style={{ width: '100%', height: '100%', border: 'none', WebkitOverflowScrolling: 'touch' } as any}
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture; web-share; xr-spatial-tracking"
             referrerPolicy="no-referrer-when-downgrade"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups"
           />
           <div className="cx-pip-controls">
             <button className="cx-pip-btn expand" onClick={() => { setWatchTogetherVisible(true); setWtPip(false); }}>
