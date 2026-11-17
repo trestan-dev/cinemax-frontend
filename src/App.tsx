@@ -287,6 +287,10 @@ export default function App() {
   // Keep refs in sync with state
   useEffect(() => { connRef.current = conn; }, [conn]);
   useEffect(() => { hostModeRef.current = hostMode; }, [hostMode]);
+  const selectedServerRef = useRef<number>(0);
+  useEffect(() => { selectedServerRef.current = selectedServer; }, [selectedServer]);
+  const wtVideoLoadedRef = useRef<boolean>(false);
+  useEffect(() => { wtVideoLoadedRef.current = wtVideoLoaded; }, [wtVideoLoaded]);
   useEffect(() => { peerConnectedRef.current = peerConnected; }, [peerConnected]);
 
   const hostRealCurrentTimeRef = useRef<number>(0);
@@ -676,6 +680,12 @@ export default function App() {
           guestStartTsRef.current = ts;
           setWtDriftSeconds(data.currentTime); // live display, no iframe reload
         }
+      } else if (data.type === 'SYNC_SERVER') {
+        // Host switched servers — follow along (guest can still override manually)
+        if (!isHost && typeof data.serverIndex === 'number') {
+          wtApplyServer(data.serverIndex);
+          setWtStatus(`🔀 Host switched to ${SERVERS[data.serverIndex]?.name || 'another server'}`);
+        }
       } else if (data.type === 'HOST_SEEKED') {
         // Host paused or seeked — auto-reload guest iframe to match
         if (!isHost) {
@@ -687,6 +697,7 @@ export default function App() {
       } else if (data.type === 'REQUEST_SYNC') {
         // Guest just connected — send them the real current video time
         if (isHost) {
+          c.send({ type: 'SYNC_SERVER', serverIndex: selectedServerRef.current });
           const realTime = hostRealCurrentTimeRef.current;
           if (realTime > 0) {
             // Send real currentTime so guest can startAt the right position
@@ -844,6 +855,33 @@ export default function App() {
     return () => clearTimeout(inactivityTimerRef.current);
   }, [peerConnected]);
 
+  // Apply a server locally; if the video is already playing, reload it at the current position
+  const wtApplyServer = (index: number) => {
+    setSelectedServer(index);
+    if (!wtVideoLoadedRef.current) return;
+    let offset = 0;
+    if (hostModeRef.current) {
+      const t = getExtrapolatedTime();
+      offset = t > 0 ? t : (hostStartTsRef.current ? (Date.now() - hostStartTsRef.current) / 1000 : 0);
+    } else if (guestStartTsRef.current) {
+      offset = (Date.now() - guestStartTsRef.current) / 1000;
+    }
+    setWtLoadedOffset(Math.max(0, offset));
+    setWtIframeKey(k => k + 1);
+  };
+
+  // Manual server pick from the Watch Together UI
+  const wtChangeServer = (index: number) => {
+    if (!hostModeRef.current) return; // only the host can switch servers
+    if (index === selectedServer) return;
+    wtApplyServer(index);
+    setWtStatus(`🔀 Server: ${SERVERS[index].name}`);
+    const c = connRef.current;
+    if (hostModeRef.current && c && c.open) {
+      c.send({ type: 'SYNC_SERVER', serverIndex: index });
+    }
+  };
+
   const wtHostPlay = () => {
     const startTimestamp = Date.now();
     hostStartTsRef.current = startTimestamp;
@@ -853,6 +891,7 @@ export default function App() {
     isPlayingRef.current = true;
     resetInactivityTimer(); // activity detected
     if (conn && conn.open) {
+      conn.send({ type: 'SYNC_SERVER', serverIndex: selectedServerRef.current });
       conn.send({ type: 'SYNC_PLAY', startTimestamp });
     }
     // Start live time push — sends extrapolated time every 1s to guest
@@ -2640,6 +2679,31 @@ const askAI = async () => {
             }}>
               <i className={`fa ${peerConnected ? 'fa-circle-check' : 'fa-circle-info'}`} style={{ color: peerConnected ? 'var(--green)' : 'var(--text-muted)', fontSize: 12 }} />
               <span style={{ color: peerConnected ? 'var(--green)' : 'var(--text-secondary)', fontSize: 12, flex: 1 }}>{wtStatus}</span>
+            </div>
+          )}
+
+          {/* ── SERVER PICKER (host picks, guest follows) ── */}
+          {wtMovie && (
+            <div className="cx-player-bar" style={{ padding: '8px 12px', borderTop: 'none', borderBottom: '1px solid var(--border)' }}>
+              {hostMode ? (
+                <>
+                  <div className="cx-server-label" style={{ marginBottom: 6 }}>
+                    <i className="fa fa-satellite-dish" /> Server (your friend follows your pick)
+                  </div>
+                  <div className="cx-server-row">
+                    {SERVERS.map((server, index) => (
+                      <button key={index} className={`cx-server-btn ${selectedServer === index ? 'active' : ''}`} onClick={() => wtChangeServer(index)}>
+                        {selectedServer === index && <i className="fa fa-circle-play" />}
+                        {server.name}{server.needsImdb ? ' ✦' : ''}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="cx-server-label" style={{ marginBottom: 0 }}>
+                  <i className="fa fa-satellite-dish" /> Server: {SERVERS[selectedServer]?.name} (set by host)
+                </div>
+              )}
             </div>
           )}
 
